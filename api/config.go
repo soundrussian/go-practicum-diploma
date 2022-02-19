@@ -3,12 +3,14 @@ package api
 import (
 	"flag"
 	"os"
+	"time"
 )
 
 // Config contains API settings needed to run gophermart server
 type Config struct {
 	// RunAddress contains host and port to run server on
-	RunAddress string
+	RunAddress            string
+	ServerShutdownTimeout time.Duration
 }
 
 // config is a pointer to API config.
@@ -16,6 +18,8 @@ type Config struct {
 var config *Config
 
 const defaultRunAddress = "localhost:8080"
+const defaultServerShutdown = 5 * time.Second
+
 const runAddressEnvKey = "RUN_ADDRESS"
 const runAddressFlagName = "a"
 
@@ -33,7 +37,10 @@ func init() {
 func readConfig() {
 	// If config has not been set yet, initialize it
 	if config == nil {
-		config = &Config{RunAddress: defaultRunAddress}
+		config = &Config{
+			RunAddress:            defaultRunAddress,
+			ServerShutdownTimeout: defaultServerShutdown,
+		}
 	}
 
 	// Here we check for two things:
