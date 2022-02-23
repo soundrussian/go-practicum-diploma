@@ -2,11 +2,12 @@ package api
 
 import (
 	"context"
-	"fmt"
+	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"net/http"
 )
 
 func RunServer(ctx context.Context) (<-chan struct{}, error) {
+	ctx, logger := logging.CtxLogger(ctx)
 	server := http.Server{Addr: config.RunAddress, Handler: http.DefaultServeMux}
 	c := make(chan struct{})
 
@@ -17,12 +18,13 @@ func RunServer(ctx context.Context) (<-chan struct{}, error) {
 		defer cancel()
 
 		if err := server.Shutdown(shutdownTimeout); err != nil {
-			fmt.Println(err)
+			logger.Err(err).Msg("error while shutting down server")
 		}
 
 		c <- struct{}{}
 	}()
 
-	fmt.Println("Starting gophermart on address", config.RunAddress)
+	logger.Info().Msgf("starting server on address %s", config.RunAddress)
+
 	return c, server.ListenAndServe()
 }
