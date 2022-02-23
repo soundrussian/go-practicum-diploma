@@ -3,6 +3,7 @@ package logging
 import (
 	"github.com/rs/zerolog"
 	"os"
+	"time"
 )
 
 // LoggerOption is a function that can be passed to NewLogger
@@ -25,7 +26,7 @@ func WithLogLevel(level zerolog.Level) LoggerOption {
 // It accepts a slice of LoggerOption and applies it to built logger.
 func NewLogger(opts ...LoggerOption) zerolog.Logger {
 	logger := zerolog.New(os.Stdout).
-		Output(zerolog.ConsoleWriter{Out: os.Stdout}).
+		Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}).
 		Level(zerolog.TraceLevel).
 		With().
 		Timestamp().
