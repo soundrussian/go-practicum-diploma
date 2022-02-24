@@ -14,11 +14,10 @@ import (
 func main() {
 	flag.Parse()
 
-	ctx, logger := logging.CtxLogger(nil)
-
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	ctx, logger := logging.CtxLogger(ctx)
 	serverDone, err := api.RunServer(ctx)
 
 	if err != nil && err != http.ErrServerClosed {

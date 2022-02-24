@@ -10,7 +10,7 @@ import (
 
 func TestCtxLogger_StoresLogger(t *testing.T) {
 	t.Run("stores logger in the passed context", func(t *testing.T) {
-		ctx, logger := CtxLogger(nil)
+		ctx, logger := CtxLogger(context.Background())
 
 		// Fetch logger again from the context
 		_, got := CtxLogger(ctx)
@@ -20,7 +20,7 @@ func TestCtxLogger_StoresLogger(t *testing.T) {
 }
 
 func TestCtxLogger_CorrelationID(t *testing.T) {
-	ctxWithLogger, _ := CtxLogger(nil)
+	ctxWithLogger, _ := CtxLogger(context.Background())
 
 	type args struct {
 		ctx           context.Context
@@ -69,7 +69,7 @@ func TestCtxLogger_CorrelationID(t *testing.T) {
 }
 
 func TestSetCorrelationID(t *testing.T) {
-	ctxWithLogger, _ := CtxLogger(nil)
+	ctxWithLogger, _ := CtxLogger(context.Background())
 
 	type args struct {
 		ctx context.Context
