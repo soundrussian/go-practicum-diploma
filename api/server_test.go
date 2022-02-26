@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/soundrussian/go-practicum-diploma/auth/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net"
@@ -16,9 +17,12 @@ func TestRunServer(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		runServerOnFreePort(t, ctx)
+		api, err := New(mock.SuccessfulRegistration{})
+		require.NoError(t, err)
 
-		err := pingServer()
+		runServerOnFreePort(t, ctx, api)
+
+		err = pingServer()
 		require.NoError(t, err)
 	})
 }
@@ -27,11 +31,14 @@ func TestRunServer_StopThroughContext(t *testing.T) {
 	t.Run("it stops server by cancelling context", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 
-		runServerOnFreePort(t, ctx)
+		api, err := New(mock.SuccessfulRegistration{})
+		require.NoError(t, err)
+
+		runServerOnFreePort(t, ctx, api)
 
 		cancel()
 
-		err := pingServer()
+		err = pingServer()
 		require.Error(t, err)
 	})
 }
@@ -50,14 +57,14 @@ func getFreePort() (int, error) {
 	return l.Addr().(*net.TCPAddr).Port, nil
 }
 
-func runServerOnFreePort(t *testing.T, ctx context.Context) {
+func runServerOnFreePort(t *testing.T, ctx context.Context, api *API) {
 	freePort, err := getFreePort()
 	require.NoError(t, err)
 
 	config.RunAddress = fmt.Sprintf("localhost:%d", freePort)
 
 	go func() {
-		_, err = RunServer(ctx)
+		_, err = api.RunServer(ctx)
 		assert.ErrorIs(t, err, http.ErrServerClosed)
 	}()
 

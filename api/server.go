@@ -6,9 +6,9 @@ import (
 	"net/http"
 )
 
-func RunServer(ctx context.Context) (<-chan struct{}, error) {
+func (api *API) RunServer(ctx context.Context) (<-chan struct{}, error) {
 	ctx, logger := logging.CtxLogger(ctx)
-	server := http.Server{Addr: config.RunAddress, Handler: routes()}
+	server := http.Server{Addr: config.RunAddress, Handler: api.routes()}
 	c := make(chan struct{})
 
 	go func() {
@@ -18,7 +18,7 @@ func RunServer(ctx context.Context) (<-chan struct{}, error) {
 		defer cancel()
 
 		logger.Info().Msg("waiting for all connections to shut down...")
-		
+
 		if err := server.Shutdown(shutdownTimeout); err != nil {
 			logger.Err(err).Msg("error while shutting down server")
 		}
