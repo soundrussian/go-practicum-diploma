@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -8,8 +9,12 @@ import (
 	"github.com/golang-migrate/migrate/database"
 	"github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/rs/zerolog"
 	"github.com/soundrussian/go-practicum-diploma/model"
+	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"github.com/soundrussian/go-practicum-diploma/storage"
 )
 
@@ -44,9 +49,36 @@ func New() (storage.Store, error) {
 	return &store, nil
 }
 
-func (s *Storage) CreateUser(login string, password string) (*model.User, error) {
-	//TODO implement me
-	panic("implement me")
+func (s *Storage) CreateUser(ctx context.Context, login string, password string) (*model.User, error) {
+	var recordID uint64
+	if err := s.db.QueryRowContext(
+		ctx,
+		"INSERT INTO users(login, encrypted_password) VALUES ($1, $2) RETURNING id",
+		login, password,
+	).Scan(&recordID); err != nil {
+		var pgError pgx.PgError
+		if errors.As(err, &pgError) && pgerrcode.UniqueViolation == pgError.Code {
+			s.Log(ctx).Err(err).Msgf("user with login %s already exists", login)
+			return nil, storage.ErrLoginAlreadyExists
+		}
+		s.Log(ctx).Err(err).Msg("failed to create user")
+		return nil, err
+	}
+
+	user := &model.User{
+		ID:    recordID,
+		Login: login,
+	}
+
+	return user, nil
+}
+
+// Log returns logger with service field set.
+func (s *Storage) Log(ctx context.Context) *zerolog.Logger {
+	_, logger := logging.CtxLogger(ctx)
+	logger = logger.With().Str(logging.ServiceNameKey, "storage").Logger()
+
+	return &logger
 }
 
 func runMigrations(db *sql.DB) error {
@@ -62,5 +94,11 @@ func runMigrations(db *sql.DB) error {
 		return err
 	}
 
-	return m.Up()
+	// golang-migrate returns ErrNoChange if there are no new migrations.
+	// Ignore it.
+	if err = m.Up(); !errors.Is(err, migrate.ErrNoChange) {
+		return err
+	}
+
+	return nil
 }

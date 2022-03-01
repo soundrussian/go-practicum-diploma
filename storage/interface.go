@@ -1,8 +1,11 @@
 package storage
 
-import "github.com/soundrussian/go-practicum-diploma/model"
+import (
+	"context"
+	"github.com/soundrussian/go-practicum-diploma/model"
+)
 
 type Store interface {
-	CreateUser(login string, password string) (*model.User, error)
+	CreateUser(ctx context.Context, login string, password string) (*model.User, error)
 	Close()
 }

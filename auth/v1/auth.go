@@ -23,6 +23,10 @@ func New(storage storage.Store) (*Auth, error) {
 		return nil, errors.New("secretKey has not been initialized")
 	}
 
+	if TokenAuth == nil {
+		return nil, errors.New("TokenAuth has not been initialized")
+	}
+
 	if storage == nil {
 		return nil, errors.New("nil storage passed to Auth service constructor")
 	}
@@ -41,7 +45,7 @@ func (a *Auth) Register(ctx context.Context, login string, password string) (*mo
 		return nil, auth.ErrRegistrationInternalError
 	}
 
-	if user, err = a.storage.CreateUser(login, hashedPassword); err != nil {
+	if user, err = a.storage.CreateUser(ctx, login, hashedPassword); err != nil {
 		a.Log(ctx).Err(err).Msg("failed to create user")
 		return nil, fmt.Errorf("failed to store user: %w", err)
 	}
@@ -54,9 +58,15 @@ func (a *Auth) Authenticate(ctx context.Context, login string, password string) 
 	panic("implement me")
 }
 
-func (a *Auth) AuthToken(ctx context.Context, user *model.User) string {
-	//TODO implement me
-	panic("implement me")
+func (a *Auth) AuthToken(ctx context.Context, user *model.User) (*string, error) {
+	var tokenString string
+	var err error
+
+	if _, tokenString, err = TokenAuth.Encode(map[string]interface{}{"user_id": user.ID}); err != nil {
+		return nil, err
+	}
+
+	return &tokenString, nil
 }
 
 // Log returns logger with service field set.

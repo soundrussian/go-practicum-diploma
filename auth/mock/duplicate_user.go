@@ -19,6 +19,6 @@ func (s DuplicateUser) Authenticate(ctx context.Context, login string, password 
 	panic("Authenticate(login string, password string) is not implemented in DuplicateUser mock")
 }
 
-func (s DuplicateUser) AuthToken(ctx context.Context, user *model.User) string {
+func (s DuplicateUser) AuthToken(ctx context.Context, user *model.User) (*string, error) {
 	panic("AuthToken(user *auth.User) is not implemented in DuplicateUser mock")
 }

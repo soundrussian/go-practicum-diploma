@@ -26,6 +26,7 @@ func (s SuccessfulRegistration) Authenticate(ctx context.Context, login string, 
 	panic("Authenticate(login string, password string) is not implemented in SuccessfulRegistration mock")
 }
 
-func (s SuccessfulRegistration) AuthToken(ctx context.Context, user *model.User) string {
-	return AuthToken
+func (s SuccessfulRegistration) AuthToken(ctx context.Context, user *model.User) (*string, error) {
+	token := AuthToken
+	return &token, nil
 }

@@ -1,10 +1,12 @@
 package v1
 
 import (
+	"github.com/go-chi/jwtauth/v5"
 	"os"
 )
 
 var secretKey *string
+var TokenAuth *jwtauth.JWTAuth
 
 const defaultSecretKey = "veGmwk4gcgKKRgQwMnw4t*_s"
 
@@ -34,4 +36,6 @@ func readConfig() {
 	if key, ok := os.LookupEnv(secretKeyEnvKey); ok && *secretKey == defaultSecretKey {
 		secretKey = &key
 	}
+
+	TokenAuth = jwtauth.New("HS256", []byte(*secretKey), nil)
 }

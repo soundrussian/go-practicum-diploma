@@ -53,17 +53,24 @@ func (api *API) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := api.authService.AuthToken(r.Context(), user)
+	logger.Info().Msgf("saved user id=%d with login %s", user.ID, user.Login)
+
+	var token *string
+	if token, err = api.authService.AuthToken(r.Context(), user); err != nil {
+		logger.Err(err).Msg("failed to get auth token for user")
+		http.Error(w, "user has been registered, but failed to log in", http.StatusInternalServerError)
+		return
+	}
 
 	cookie := &http.Cookie{
-		Name:  "token",
-		Value: token,
+		Name:  "jwt",
+		Value: *token,
 	}
 	http.SetCookie(w, cookie)
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Authentication", fmt.Sprintf("Bearer %s", token))
+	w.Header().Set("Authentication", fmt.Sprintf("Bearer %s", *token))
 
-	response := registerJSONResponse{Token: token}
+	response := registerJSONResponse{Token: *token}
 	encoder := json.NewEncoder(w)
 	if err = encoder.Encode(&response); err != nil {
 		logger.Err(err).Msgf("failed to encode json response from %+v", response)
