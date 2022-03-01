@@ -75,6 +75,20 @@ func TestHandleRegister(t *testing.T) {
 				body:   auth.ErrInvalidLogin.Error() + "\n",
 			},
 		},
+		{
+			name: "returns 409 Bad Request if user is already registered",
+			args: args{
+				headers: map[string]string{
+					"Content-Type": "application/json",
+				},
+				body: validRequest,
+				auth: mock.DuplicateUser{},
+			},
+			want: want{
+				status: http.StatusConflict,
+				body:   auth.ErrUserAlreadyRegistered.Error() + "\n",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

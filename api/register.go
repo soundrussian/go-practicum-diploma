@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/soundrussian/go-practicum-diploma/auth"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"net/http"
 )
@@ -28,7 +30,11 @@ func (api *API) HandleRegister(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := api.authService.Register(jsonRequest.Login, jsonRequest.Password); err != nil {
 		logger.Err(err).Msgf("failed to register user %s", jsonRequest.Login)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		status := http.StatusBadRequest
+		if errors.Is(err, auth.ErrUserAlreadyRegistered) {
+			status = http.StatusConflict
+		}
+		http.Error(w, err.Error(), status)
 		return
 	}
 

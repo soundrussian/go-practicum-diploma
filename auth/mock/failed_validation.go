@@ -12,5 +12,5 @@ func (s FailedValidation) Register(login string, password string) (*auth.User, e
 }
 
 func (s FailedValidation) Authenticate(login string, password string) (*auth.User, error) {
-	panic("Authenticate(login string, password string) is not implemented in SuccessfulRegistration mock")
+	panic("Authenticate(login string, password string) is not implemented in FailedValidation mock")
 }
