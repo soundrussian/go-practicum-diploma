@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/soundrussian/go-practicum-diploma/auth"
 	"github.com/soundrussian/go-practicum-diploma/auth/mock"
 	"github.com/stretchr/testify/assert"
@@ -89,6 +90,24 @@ func TestHandleRegister(t *testing.T) {
 				body:   auth.ErrUserAlreadyRegistered.Error() + "\n",
 			},
 		},
+		{
+			name: "returns 200 OK if user is registered, along with authentication token",
+			args: args{
+				headers: map[string]string{
+					"Content-Type": "application/json",
+				},
+				body: validRequest,
+				auth: mock.SuccessfulRegistration{},
+			},
+			want: want{
+				status: http.StatusOK,
+				body:   fmt.Sprintf(`{"token":"%s"}`+"\n", mock.AuthToken),
+				headers: map[string]string{
+					"Set-Cookie":     fmt.Sprintf("token=%s", mock.AuthToken),
+					"Authentication": fmt.Sprintf("Bearer %s", mock.AuthToken),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -110,12 +129,6 @@ func TestHandleRegister(t *testing.T) {
 			resp, err := transport.RoundTrip(req)
 			require.NoError(t, err)
 
-			assert.Equal(t, tt.want.status, resp.StatusCode)
-
-			for wantHeader, wantHeaderValue := range tt.want.headers {
-				assert.Equal(t, resp.Header.Get(wantHeader), wantHeaderValue)
-			}
-
 			if tt.want.body != "" {
 				resBody, err := io.ReadAll(resp.Body)
 				require.NoError(t, err)
@@ -123,6 +136,13 @@ func TestHandleRegister(t *testing.T) {
 
 				assert.Equal(t, tt.want.body, string(resBody))
 			}
+
+			assert.Equal(t, tt.want.status, resp.StatusCode)
+
+			for wantHeader, wantHeaderValue := range tt.want.headers {
+				assert.Equal(t, wantHeaderValue, resp.Header.Get(wantHeader))
+			}
+
 		})
 	}
 }

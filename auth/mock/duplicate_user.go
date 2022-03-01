@@ -14,3 +14,7 @@ func (s DuplicateUser) Register(login string, password string) (*auth.User, erro
 func (s DuplicateUser) Authenticate(login string, password string) (*auth.User, error) {
 	panic("Authenticate(login string, password string) is not implemented in DuplicateUser mock")
 }
+
+func (s DuplicateUser) AuthToken(user *auth.User) string {
+	panic("AuthToken(user *auth.User) is not implemented in DuplicateUser mock")
+}

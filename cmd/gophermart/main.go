@@ -23,7 +23,7 @@ func main() {
 
 	ctx, logger := logging.CtxLogger(ctx)
 
-	if a, err = api.New(mock.FailedValidation{}); err != nil {
+	if a, err = api.New(mock.SuccessfulRegistration{}); err != nil {
 		logger.Err(err).Msg("error intializing API")
 		return
 	}

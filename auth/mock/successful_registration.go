@@ -4,6 +4,8 @@ import "github.com/soundrussian/go-practicum-diploma/auth"
 
 var _ auth.Auth = (*SuccessfulRegistration)(nil)
 
+const AuthToken = "123456qwer"
+
 type SuccessfulRegistration struct {
 }
 
@@ -20,3 +22,6 @@ func (s SuccessfulRegistration) Authenticate(login string, password string) (*au
 	panic("Authenticate(login string, password string) is not implemented in SuccessfulRegistration mock")
 }
 
+func (s SuccessfulRegistration) AuthToken(user *auth.User) string {
+	return AuthToken
+}
