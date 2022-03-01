@@ -1,7 +1,12 @@
 package auth
 
+import (
+	"context"
+	"github.com/soundrussian/go-practicum-diploma/model"
+)
+
 type Auth interface {
-	Register(login string, password string) (*User, error)
-	Authenticate(login string, password string) (*User, error)
-	AuthToken(user *User) string
+	Register(ctx context.Context, login string, password string) (*model.User, error)
+	Authenticate(ctx context.Context, login string, password string) (*model.User, error)
+	AuthToken(ctx context.Context, user *model.User) string
 }

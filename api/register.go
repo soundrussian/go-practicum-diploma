@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/soundrussian/go-practicum-diploma/auth"
+	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"net/http"
 )
@@ -20,7 +21,7 @@ type registerJSONResponse struct {
 
 func (api *API) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	var jsonRequest registerJSONRequest
-	var user *auth.User
+	var user *model.User
 	var err error
 
 	_, logger := logging.CtxLogger(r.Context())
@@ -36,7 +37,7 @@ func (api *API) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err = api.authService.Register(jsonRequest.Login, jsonRequest.Password); err != nil {
+	if user, err = api.authService.Register(r.Context(), jsonRequest.Login, jsonRequest.Password); err != nil {
 		logger.Err(err).Msgf("failed to register user %s", jsonRequest.Login)
 		status := http.StatusBadRequest
 		if errors.Is(err, auth.ErrUserAlreadyRegistered) {
@@ -52,7 +53,7 @@ func (api *API) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := api.authService.AuthToken(user)
+	token := api.authService.AuthToken(r.Context(), user)
 
 	cookie := &http.Cookie{
 		Name:  "token",

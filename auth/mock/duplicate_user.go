@@ -1,20 +1,24 @@
 package mock
 
-import "github.com/soundrussian/go-practicum-diploma/auth"
+import (
+	"context"
+	"github.com/soundrussian/go-practicum-diploma/auth"
+	"github.com/soundrussian/go-practicum-diploma/model"
+)
 
 var _ auth.Auth = (*DuplicateUser)(nil)
 
 type DuplicateUser struct {
 }
 
-func (s DuplicateUser) Register(login string, password string) (*auth.User, error) {
+func (s DuplicateUser) Register(ctx context.Context, login string, password string) (*model.User, error) {
 	return nil, auth.ErrUserAlreadyRegistered
 }
 
-func (s DuplicateUser) Authenticate(login string, password string) (*auth.User, error) {
+func (s DuplicateUser) Authenticate(ctx context.Context, login string, password string) (*model.User, error) {
 	panic("Authenticate(login string, password string) is not implemented in DuplicateUser mock")
 }
 
-func (s DuplicateUser) AuthToken(user *auth.User) string {
+func (s DuplicateUser) AuthToken(ctx context.Context, user *model.User) string {
 	panic("AuthToken(user *auth.User) is not implemented in DuplicateUser mock")
 }
