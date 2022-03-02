@@ -10,17 +10,13 @@ import (
 	"net/http"
 )
 
-type registerJSONRequest struct {
+type loginJSONRequest struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 
-type authenticateJSONResponse struct {
-	Token string `json:"token"`
-}
-
-func (api *API) HandleRegister(w http.ResponseWriter, r *http.Request) {
-	var jsonRequest registerJSONRequest
+func (api *API) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	var jsonRequest loginJSONRequest
 	var user *model.User
 	var err error
 
@@ -37,23 +33,23 @@ func (api *API) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err = api.authService.Register(r.Context(), jsonRequest.Login, jsonRequest.Password); err != nil {
-		logger.Err(err).Msgf("failed to register user %s", jsonRequest.Login)
-		status := http.StatusBadRequest
-		if errors.Is(err, auth.ErrUserAlreadyRegistered) {
-			status = http.StatusConflict
+	if user, err = api.authService.Authenticate(r.Context(), jsonRequest.Login, jsonRequest.Password); err != nil {
+		logger.Err(err).Msgf("failed to authenticate user %s", jsonRequest.Login)
+		if errors.Is(err, auth.ErrUserNotFound) || errors.Is(err, auth.ErrPasswordIncorrect) {
+			http.Error(w, "incorrect login or password", http.StatusUnauthorized)
+			return
 		}
-		http.Error(w, err.Error(), status)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 
 	if user == nil {
-		logger.Err(errors.New("api.authService.Register returned nil user")).Msgf("failed to register %+v", jsonRequest)
-		http.Error(w, "registration failed", http.StatusInternalServerError)
+		logger.Err(errors.New("api.authService.Authenticate returned nil user")).Msgf("failed to login %+v", jsonRequest)
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 
-	logger.Info().Msgf("saved user id=%d with login %s", user.ID, user.Login)
+	logger.Info().Msgf("authenticated user id=%d with login %s", user.ID, user.Login)
 
 	var token *string
 	if token, err = api.authService.AuthToken(r.Context(), user); err != nil {

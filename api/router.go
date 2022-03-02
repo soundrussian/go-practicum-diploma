@@ -13,6 +13,7 @@ func (api *API) routes() *chi.Mux {
 	r.Use(customMiddleware.LogRequest)
 
 	r.Post("/api/user/register", api.HandleRegister)
+	r.Post("/api/user/login", api.HandleLogin)
 
 	return r
 }

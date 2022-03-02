@@ -41,7 +41,7 @@ func (a *Auth) Register(ctx context.Context, login string, password string) (*mo
 	var user *model.User
 	var err error
 
-	if hashedPassword, err = a.hashedPassword(ctx, password+*secretKey); err != nil {
+	if hashedPassword, err = a.hashedPassword(ctx, password); err != nil {
 		return nil, auth.ErrRegistrationInternalError
 	}
 
@@ -54,8 +54,23 @@ func (a *Auth) Register(ctx context.Context, login string, password string) (*mo
 }
 
 func (a *Auth) Authenticate(ctx context.Context, login string, password string) (*model.User, error) {
-	//TODO implement me
-	panic("implement me")
+	var user *model.User
+	var err error
+
+	if user, err = a.storage.FetchUser(ctx, login); err != nil {
+		a.Log(ctx).Err(err).Msg("errors fetching user for authentication")
+		if errors.Is(err, storage.ErrNotFound) {
+			return nil, auth.ErrUserNotFound
+		}
+		return nil, auth.ErrAuthenticateInternalError
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password+*secretKey)); err != nil {
+		a.Log(ctx).Err(err).Msgf("provided password %s is not valid for user %s", password, login)
+		return nil, auth.ErrPasswordIncorrect
+	}
+
+	return user, nil
 }
 
 func (a *Auth) AuthToken(ctx context.Context, user *model.User) (*string, error) {
@@ -81,7 +96,7 @@ func (a Auth) hashedPassword(ctx context.Context, password string) (string, erro
 	var result []byte
 	var err error
 
-	if result, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost); err != nil {
+	if result, err = bcrypt.GenerateFromPassword([]byte(password+*secretKey), bcrypt.DefaultCost); err != nil {
 		a.Log(ctx).Err(err).Msg("failed to generate hashed password")
 		return "", err
 	}

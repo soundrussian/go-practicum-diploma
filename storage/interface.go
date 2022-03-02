@@ -7,5 +7,6 @@ import (
 
 type Store interface {
 	CreateUser(ctx context.Context, login string, password string) (*model.User, error)
+	FetchUser(ctx context.Context, login string) (*model.User, error)
 	Close()
 }

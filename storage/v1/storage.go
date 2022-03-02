@@ -73,6 +73,23 @@ func (s *Storage) CreateUser(ctx context.Context, login string, password string)
 	return user, nil
 }
 
+func (s *Storage) FetchUser(ctx context.Context, login string) (*model.User, error) {
+	var user model.User
+
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT id, login, encrypted_password FROM users WHERE login = $1 LIMIT 1`,
+		login,
+	).Scan(&user.ID, &user.Login, &user.Password); err != nil {
+		s.Log(ctx).Err(err).Msgf("error fetching user %s", login)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, storage.ErrNotFound
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 // Log returns logger with service field set.
 func (s *Storage) Log(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.CtxLogger(ctx)

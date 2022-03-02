@@ -16,6 +16,11 @@ func (m MemoryStorage) CreateUser(ctx context.Context, login string, password st
 	return &user, nil
 }
 
+func (m MemoryStorage) FetchUser(ctx context.Context, login string) (*model.User, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (m MemoryStorage) Close() {
 
 }
