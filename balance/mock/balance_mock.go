@@ -7,34 +7,17 @@ import (
 
 var _ balance.Balance = (*BalanceMock)(nil)
 
-type Balance struct {
-	Balance   uint64
-	Withdrawn uint64
-}
-
 type BalanceMock struct {
-	ByUser map[uint64]Balance
+	ByUser map[uint64]balance.UserBalance
 }
 
-func (b BalanceMock) Balance(ctx context.Context, userID uint64) (uint64, error) {
-	var bal Balance
+func (b BalanceMock) UserBalance(ctx context.Context, userID uint64) (*balance.UserBalance, error) {
+	var bal balance.UserBalance
 	var ok bool
 
 	if bal, ok = b.ByUser[userID]; !ok {
-		return 0, balance.ErrUserNotFound
+		return nil, balance.ErrUserNotFound
 	}
 
-	return bal.Balance, nil
+	return &bal, nil
 }
-
-func (b BalanceMock) Withdrawn(ctx context.Context, userID uint64) (uint64, error) {
-	var bal Balance
-	var ok bool
-
-	if bal, ok = b.ByUser[userID]; !ok {
-		return 0, balance.ErrUserNotFound
-	}
-
-	return bal.Withdrawn, nil
-}
-

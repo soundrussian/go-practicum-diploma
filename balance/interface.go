@@ -2,7 +2,11 @@ package balance
 
 import "context"
 
+type UserBalance struct {
+	Current   uint64
+	Withdrawn uint64
+}
+
 type Balance interface {
-	Balance(ctx context.Context, userID uint64) (uint64, error)
-	Withdrawn(ctx context.Context, userID uint64) (uint64, error)
+	UserBalance(ctx context.Context, userID uint64) (*UserBalance, error)
 }

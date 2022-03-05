@@ -43,9 +43,9 @@ func TestHandleBalance(t *testing.T) {
 			args: args{
 				token: authMock.Token(),
 				balance: balanceMock.BalanceMock{
-					ByUser: map[uint64]balanceMock.Balance{
+					ByUser: map[uint64]balance.UserBalance{
 						authMock.UserID: {
-							Balance:   500,
+							Current:   500,
 							Withdrawn: 42,
 						},
 					},
@@ -60,7 +60,7 @@ func TestHandleBalance(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, err := New(authMock.Successful{})
+			a, err := New(authMock.Successful{}, tt.args.balance)
 			require.NoError(t, err)
 
 			r := a.routes()
@@ -89,7 +89,6 @@ func TestHandleBalance(t *testing.T) {
 			for wantHeader, wantHeaderValue := range tt.want.headers {
 				assert.Equal(t, wantHeaderValue, resp.Header.Get(wantHeader))
 			}
-
 		})
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/soundrussian/go-practicum-diploma/auth"
 	"github.com/soundrussian/go-practicum-diploma/auth/mock"
+	balanceMock "github.com/soundrussian/go-practicum-diploma/balance/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -111,7 +112,7 @@ func TestHandleRegister(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, err := New(tt.args.auth)
+			a, err := New(tt.args.auth, balanceMock.BalanceMock{})
 			require.NoError(t, err)
 
 			r := a.routes()
