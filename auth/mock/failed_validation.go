@@ -20,5 +20,5 @@ func (s FailedValidation) Authenticate(ctx context.Context, login string, passwo
 }
 
 func (s FailedValidation) AuthToken(ctx context.Context, user *model.User) (*string, error) {
-	panic("AuthToken(user *auth.User) is not implemented in FailedValidation mock")
+	panic("Token(user *auth.User) is not implemented in FailedValidation mock")
 }

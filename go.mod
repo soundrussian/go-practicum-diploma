@@ -20,6 +20,7 @@ require (
 	github.com/docker/docker v20.10.12+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
+	github.com/go-chi/jwtauth v1.2.0 // indirect
 	github.com/go-chi/jwtauth/v5 v5.0.2 // indirect
 	github.com/goccy/go-json v0.7.6 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect

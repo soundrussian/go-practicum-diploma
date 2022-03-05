@@ -17,9 +17,7 @@ type logEntry struct {
 }
 
 func fromRequest(r *http.Request) logEntry {
-
 	le := logEntry{
-		body:   r.Header.Get("user-agent"),
 		method: r.Method,
 		addr:   r.RemoteAddr,
 		path:   r.URL.Path,

@@ -43,7 +43,7 @@ func TestHandleRegister(t *testing.T) {
 			name: "returns 415 Unsupported Media Type if request does not have Content-Type: application/json",
 			args: args{
 				body: validRequest,
-				auth: mock.SuccessfulRegistration{},
+				auth: mock.Successful{},
 			},
 			want: want{
 				status: http.StatusUnsupportedMediaType,
@@ -56,7 +56,7 @@ func TestHandleRegister(t *testing.T) {
 					"Content-Type": "application/json",
 				},
 				body: invalidJSON,
-				auth: mock.SuccessfulRegistration{},
+				auth: mock.Successful{},
 			},
 			want: want{
 				status: http.StatusBadRequest,
@@ -97,14 +97,14 @@ func TestHandleRegister(t *testing.T) {
 					"Content-Type": "application/json",
 				},
 				body: validRequest,
-				auth: mock.SuccessfulRegistration{},
+				auth: mock.Successful{},
 			},
 			want: want{
 				status: http.StatusOK,
-				body:   fmt.Sprintf(`{"token":"%s"}`+"\n", mock.AuthToken),
+				body:   fmt.Sprintf(`{"token":"%s"}`+"\n", mock.Token()),
 				headers: map[string]string{
-					"Set-Cookie":     fmt.Sprintf("token=%s", mock.AuthToken),
-					"Authentication": fmt.Sprintf("Bearer %s", mock.AuthToken),
+					"Set-Cookie":     fmt.Sprintf("jwt=%s", mock.Token()),
+					"Authentication": fmt.Sprintf("Bearer %s", mock.Token()),
 				},
 			},
 		},

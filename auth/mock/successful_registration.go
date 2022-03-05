@@ -3,30 +3,47 @@ package mock
 import (
 	"context"
 	"github.com/soundrussian/go-practicum-diploma/auth"
+	v1 "github.com/soundrussian/go-practicum-diploma/auth/v1"
 	"github.com/soundrussian/go-practicum-diploma/model"
 )
 
-var _ auth.Auth = (*SuccessfulRegistration)(nil)
+var _ auth.Auth = (*Successful)(nil)
 
-const AuthToken = "123456qwer"
+const Password = "topsecret"
+const UserID = 100
 
-type SuccessfulRegistration struct {
+type Successful struct {
 }
 
-func (s SuccessfulRegistration) Register(ctx context.Context, login string, password string) (*model.User, error) {
+func (s Successful) Register(ctx context.Context, login string, password string) (*model.User, error) {
 	user := model.User{
-		ID:    100,
+		ID:    UserID,
 		Login: login,
 	}
 
 	return &user, nil
 }
 
-func (s SuccessfulRegistration) Authenticate(ctx context.Context, login string, password string) (*model.User, error) {
-	panic("Authenticate(login string, password string) is not implemented in SuccessfulRegistration mock")
+func (s Successful) Authenticate(ctx context.Context, login string, password string) (*model.User, error) {
+	if password != Password {
+		return nil, auth.ErrInvalidPassword
+	}
+
+	user := model.User{
+		ID:    UserID,
+		Login: login,
+	}
+
+	return &user, nil
 }
 
-func (s SuccessfulRegistration) AuthToken(ctx context.Context, user *model.User) (*string, error) {
-	token := AuthToken
+func (s Successful) AuthToken(ctx context.Context, user *model.User) (*string, error) {
+	token := Token()
 	return &token, nil
+}
+
+func Token() string {
+	a := &v1.Auth{}
+	token, _ := a.AuthToken(context.Background(), &model.User{ID: UserID})
+	return *token
 }
