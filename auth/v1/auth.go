@@ -15,10 +15,10 @@ import (
 var _ auth.Auth = (*Auth)(nil)
 
 type Auth struct {
-	storage storage.Store
+	storage storage.Storage
 }
 
-func New(storage storage.Store) (*Auth, error) {
+func New(storage storage.Storage) (*Auth, error) {
 	if secretKey == nil {
 		return nil, errors.New("secretKey has not been initialized")
 	}

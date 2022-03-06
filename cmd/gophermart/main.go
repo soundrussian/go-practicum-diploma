@@ -18,7 +18,7 @@ import (
 func main() {
 	var a *api.API
 	var authService *auth.Auth
-	var store storage.Store
+	var store storage.Storage
 	var err error
 
 	flag.Parse()

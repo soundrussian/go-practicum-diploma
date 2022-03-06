@@ -18,7 +18,7 @@ import (
 	"github.com/soundrussian/go-practicum-diploma/storage"
 )
 
-var _ storage.Store = (*Storage)(nil)
+var _ storage.Storage = (*Storage)(nil)
 
 type Storage struct {
 	db *sql.DB
@@ -30,7 +30,7 @@ func (s *Storage) Close() {
 	}
 }
 
-func New() (storage.Store, error) {
+func New() (storage.Storage, error) {
 	if databaseConnection == nil {
 		return nil, errors.New("databaseConnection config is not set")
 	}
