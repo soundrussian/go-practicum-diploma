@@ -26,8 +26,7 @@ func New(storage storage.Storage) (*Order, error) {
 }
 
 func (o *Order) AcceptOrder(ctx context.Context, userID uint64, orderID string) error {
-	//TODO implement me
-	panic("implement me")
+	return nil
 }
 
 // Log returns logger with service field set.
