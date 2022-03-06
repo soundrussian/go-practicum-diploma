@@ -107,6 +107,11 @@ func (s *Storage) UserBalance(ctx context.Context, userID uint64) (*model.UserBa
 	return &balance, nil
 }
 
+func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.Withdrawal) (*model.Withdrawal, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 // Log returns logger with service field set.
 func (s *Storage) Log(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.CtxLogger(ctx)

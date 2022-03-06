@@ -121,3 +121,119 @@ func successfulStorage(current uint64, withdrawn uint64) *mocks.Storage {
 	)
 	return m
 }
+
+func TestBalance_Withdraw(t *testing.T) {
+	type fields struct {
+		storage storage.Storage
+	}
+	type args struct {
+		userID     uint64
+		withdrawal model.Withdrawal
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "returns error if sum is less than zero",
+			fields: fields{
+				storage: new(mocks.Storage),
+			},
+			args: args{
+				userID:     100,
+				withdrawal: model.Withdrawal{Sum: -1},
+			},
+			wantErr: true,
+		},
+		{
+			name: "returns error if sum is zero",
+			fields: fields{
+				storage: new(mocks.Storage),
+			},
+			args: args{
+				userID:     100,
+				withdrawal: model.Withdrawal{Sum: 0},
+			},
+			wantErr: true,
+		},
+		{
+			name: "returns error if order number is missing",
+			fields: fields{
+				storage: new(mocks.Storage),
+			},
+			args: args{
+				userID:     100,
+				withdrawal: model.Withdrawal{Sum: 10},
+			},
+			wantErr: true,
+		},
+		{
+			name: "returns error if order number is not a number",
+			fields: fields{
+				storage: new(mocks.Storage),
+			},
+			args: args{
+				userID:     100,
+				withdrawal: model.Withdrawal{Order: "not a number", Sum: 10},
+			},
+			wantErr: true,
+		},
+		{
+			name: "returns error if order checksum is invalid",
+			fields: fields{
+				storage: new(mocks.Storage),
+			},
+			args: args{
+				userID:     100,
+				withdrawal: model.Withdrawal{Order: "7992739871", Sum: 10},
+			},
+			wantErr: true,
+		},
+		{
+			name: "returns error if storage reported error",
+			fields: fields{
+				storage: failingWithdrawal(),
+			},
+			args: args{
+				userID:     100,
+				withdrawal: model.Withdrawal{Order: "79927398713", Sum: 10},
+			},
+			wantErr: true,
+		},
+		{
+			name: "does not return error if storage reported success",
+			fields: fields{
+				storage: successfulWithdrawal(),
+			},
+			args: args{
+				userID:     100,
+				withdrawal: model.Withdrawal{Order: "79927398713", Sum: 10},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &Balance{
+				storage: tt.fields.storage,
+			}
+			if err := b.Withdraw(context.Background(), tt.args.userID, tt.args.withdrawal); (err != nil) != tt.wantErr {
+				t.Errorf("Withdraw() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func failingWithdrawal() *mocks.Storage {
+	m := new(mocks.Storage)
+	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("mock error"))
+	return m
+}
+
+func successfulWithdrawal() *mocks.Storage {
+	m := new(mocks.Storage)
+	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(&model.Withdrawal{}, nil)
+	return m
+}

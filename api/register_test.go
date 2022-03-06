@@ -1,10 +1,8 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"github.com/soundrussian/go-practicum-diploma/auth"
-	v1 "github.com/soundrussian/go-practicum-diploma/auth/v1"
 	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/stretchr/testify/assert"
@@ -169,10 +167,4 @@ func successfulRegistration(userID uint64) *mocks.Auth {
 	t := token(100)
 	m.On("AuthToken", mock.Anything, mock.Anything, mock.Anything).Return(&t, nil)
 	return m
-}
-
-func token(userID uint64) string {
-	a := &v1.Auth{}
-	t, _ := a.AuthToken(context.Background(), &model.User{ID: userID})
-	return *t
 }

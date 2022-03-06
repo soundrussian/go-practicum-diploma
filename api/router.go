@@ -25,6 +25,12 @@ func (api *API) routes() *chi.Mux {
 		r.Use(customMiddleware.CurrentUser)
 
 		r.Get("/api/user/balance", api.HandleBalance)
+
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AllowContentType("application/json"))
+
+			r.Post("/api/user/withdraw", api.HandleWithdraw)
+		})
 	})
 
 	return r

@@ -7,8 +7,8 @@ import (
 )
 
 type API struct {
-	authService   auth.Auth
-	balanceSerive balance.Balance
+	authService    auth.Auth
+	balanceService balance.Balance
 }
 
 func New(auth auth.Auth, balance balance.Balance) (*API, error) {
@@ -20,8 +20,8 @@ func New(auth auth.Auth, balance balance.Balance) (*API, error) {
 	}
 
 	api := &API{
-		authService:   auth,
-		balanceSerive: balance,
+		authService:    auth,
+		balanceService: balance,
 	}
 
 	return api, nil

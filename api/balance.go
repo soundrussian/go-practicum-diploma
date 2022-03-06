@@ -28,7 +28,7 @@ func (api *API) HandleBalance(w http.ResponseWriter, r *http.Request) {
 
 	var userBalance *model.UserBalance
 	var err error
-	if userBalance, err = api.balanceSerive.UserBalance(ctx, userID); err != nil {
+	if userBalance, err = api.balanceService.UserBalance(ctx, userID); err != nil {
 		logger.Err(err).Msg("failed to get balance for user")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
