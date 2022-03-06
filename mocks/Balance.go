@@ -5,8 +5,7 @@ package mocks
 import (
 	context "context"
 
-	balance "github.com/soundrussian/go-practicum-diploma/balance"
-
+	model "github.com/soundrussian/go-practicum-diploma/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -16,15 +15,15 @@ type Balance struct {
 }
 
 // UserBalance provides a mock function with given fields: ctx, userID
-func (_m *Balance) UserBalance(ctx context.Context, userID uint64) (*balance.UserBalance, error) {
+func (_m *Balance) UserBalance(ctx context.Context, userID uint64) (*model.UserBalance, error) {
 	ret := _m.Called(ctx, userID)
 
-	var r0 *balance.UserBalance
-	if rf, ok := ret.Get(0).(func(context.Context, uint64) *balance.UserBalance); ok {
+	var r0 *model.UserBalance
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) *model.UserBalance); ok {
 		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*balance.UserBalance)
+			r0 = ret.Get(0).(*model.UserBalance)
 		}
 	}
 

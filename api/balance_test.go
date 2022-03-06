@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/soundrussian/go-practicum-diploma/balance"
 	"github.com/soundrussian/go-practicum-diploma/mocks"
+	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -89,7 +90,7 @@ func TestHandleBalance(t *testing.T) {
 func balanceForUserMock(userID uint64, current uint64, withdrawn uint64) *mocks.Balance {
 	m := new(mocks.Balance)
 	m.On("UserBalance", mock.Anything, userID).Return(
-		&balance.UserBalance{
+		&model.UserBalance{
 			Current:   current,
 			Withdrawn: withdrawn,
 		},

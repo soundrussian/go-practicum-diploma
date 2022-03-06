@@ -5,7 +5,7 @@ import (
 	"flag"
 	"github.com/soundrussian/go-practicum-diploma/api"
 	auth "github.com/soundrussian/go-practicum-diploma/auth/v1"
-	"github.com/soundrussian/go-practicum-diploma/mocks"
+	balance "github.com/soundrussian/go-practicum-diploma/balance/v1"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	storage "github.com/soundrussian/go-practicum-diploma/storage"
 	db "github.com/soundrussian/go-practicum-diploma/storage/v1"
@@ -18,6 +18,7 @@ import (
 func main() {
 	var a *api.API
 	var authService *auth.Auth
+	var balanceService *balance.Balance
 	var store storage.Storage
 	var err error
 
@@ -45,7 +46,12 @@ func main() {
 		return
 	}
 
-	if a, err = api.New(authService, new(mocks.Balance)); err != nil {
+	if balanceService, err = balance.New(store); err != nil {
+		logger.Err(err).Msg("error initializing balance service")
+		return
+	}
+
+	if a, err = api.New(authService, balanceService); err != nil {
 		logger.Err(err).Msg("error intializing API")
 		return
 	}

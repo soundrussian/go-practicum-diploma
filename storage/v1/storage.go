@@ -90,6 +90,23 @@ func (s *Storage) FetchUser(ctx context.Context, login string) (*model.User, err
 	return &user, nil
 }
 
+func (s *Storage) UserBalance(ctx context.Context, userID uint64) (*model.UserBalance, error) {
+	var balance model.UserBalance
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT COALESCE(SUM(amount), 0) AS current,
+       				  COALESCE(SUM(CASE WHEN amount < 0 THEN amount * -1 ELSE 0 END), 0) AS withdrawn
+				FROM transactions
+				WHERE user_id = $1
+				LIMIT 1`,
+		userID,
+	).Scan(&balance.Current, &balance.Withdrawn); err != nil {
+		s.Log(ctx).Err(err).Msgf("errors fetching balance for user %d", userID)
+		return nil, err
+	}
+
+	return &balance, nil
+}
+
 // Log returns logger with service field set.
 func (s *Storage) Log(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.CtxLogger(ctx)

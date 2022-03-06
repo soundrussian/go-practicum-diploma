@@ -87,7 +87,7 @@ func (a *Auth) AuthToken(ctx context.Context, user *model.User) (*string, error)
 // Log returns logger with service field set.
 func (a Auth) Log(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.CtxLogger(ctx)
-	logger = logger.With().Str(logging.ServiceNameKey, "a").Logger()
+	logger = logger.With().Str(logging.ServiceNameKey, "auth").Logger()
 
 	return &logger
 }

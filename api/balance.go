@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/soundrussian/go-practicum-diploma/balance"
+	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/curruser"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"net/http"
@@ -26,7 +26,7 @@ func (api *API) HandleBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userBalance *balance.UserBalance
+	var userBalance *model.UserBalance
 	var err error
 	if userBalance, err = api.balanceSerive.UserBalance(ctx, userID); err != nil {
 		logger.Err(err).Msg("failed to get balance for user")
@@ -46,7 +46,7 @@ func (api *API) HandleBalance(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func respFromModel(balance *balance.UserBalance) balanceJSONResponse {
+func respFromModel(balance *model.UserBalance) balanceJSONResponse {
 	return balanceJSONResponse{
 		Current:   balance.Current,
 		Withdrawn: balance.Withdrawn,

@@ -1,12 +1,10 @@
 package balance
 
-import "context"
-
-type UserBalance struct {
-	Current   uint64
-	Withdrawn uint64
-}
+import (
+	"context"
+	"github.com/soundrussian/go-practicum-diploma/model"
+)
 
 type Balance interface {
-	UserBalance(ctx context.Context, userID uint64) (*UserBalance, error)
+	UserBalance(ctx context.Context, userID uint64) (*model.UserBalance, error)
 }
