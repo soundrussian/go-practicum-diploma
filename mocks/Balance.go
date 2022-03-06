@@ -50,3 +50,26 @@ func (_m *Balance) Withdraw(ctx context.Context, userID uint64, withdrawal model
 
 	return r0
 }
+
+// Withdrawals provides a mock function with given fields: ctx, userID
+func (_m *Balance) Withdrawals(ctx context.Context, userID uint64) ([]model.Withdrawal, error) {
+	ret := _m.Called(ctx, userID)
+
+	var r0 []model.Withdrawal
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) []model.Withdrawal); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.Withdrawal)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

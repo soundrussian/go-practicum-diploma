@@ -10,5 +10,6 @@ type Storage interface {
 	FetchUser(ctx context.Context, login string) (*model.User, error)
 	UserBalance(ctx context.Context, userID uint64) (*model.UserBalance, error)
 	Withdraw(ctx context.Context, userID uint64, withdrawal model.Withdrawal) (*model.Withdrawal, error)
+	UserWithdrawals(ctx context.Context, userID uint64) ([]model.Withdrawal, error)
 	Close()
 }

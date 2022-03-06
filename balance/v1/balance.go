@@ -70,6 +70,17 @@ func (b *Balance) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 	return nil
 }
 
+func (b *Balance) Withdrawals(ctx context.Context, userID uint64) ([]model.Withdrawal, error) {
+	var withdrawals []model.Withdrawal
+	var err error
+
+	if withdrawals, err = b.storage.UserWithdrawals(ctx, userID); err != nil {
+
+	}
+
+	return withdrawals, nil
+}
+
 // Log returns logger with service field set.
 func (b *Balance) Log(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.CtxLogger(ctx)

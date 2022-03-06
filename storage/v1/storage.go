@@ -139,8 +139,8 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 
 	now := time.Now()
 	if _, err = s.db.ExecContext(ctx,
-		`INSERT INTO transactions(user_id, amount, created_at) VALUES ($1, $2, $3)`,
-		userID, withdrawal.Sum*-1, now,
+		`INSERT INTO transactions(user_id, order_id, amount, created_at) VALUES ($1, $2, $3, $4)`,
+		userID, withdrawal.Order, withdrawal.Sum*-1, now,
 	); err != nil {
 		s.Log(ctx).Err(err).Msg("error saving withdrawal to DB")
 		return nil, err
@@ -156,6 +156,39 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 		Sum:         withdrawal.Sum,
 		ProcessedAt: now,
 	}, nil
+}
+
+func (s *Storage) UserWithdrawals(ctx context.Context, userID uint64) ([]model.Withdrawal, error) {
+	var rows *sql.Rows
+	var err error
+	result := make([]model.Withdrawal, 0)
+	if rows, err = s.db.QueryContext(ctx,
+		`SELECT order_id AS order, amount * -1 AS sum, created_at AS processed_at
+				FROM transactions
+				WHERE user_id = $1
+                  AND amount < 0
+				`,
+		userID); err != nil {
+		s.Log(ctx).Err(err).Msgf("failed to fetch withdrawals for user_id %d", userID)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		record := model.Withdrawal{}
+		if err = rows.Scan(&record.Order, &record.Sum, &record.ProcessedAt); err != nil {
+			s.Log(ctx).Err(err).Msg("failed to scan row")
+			return nil, err
+		}
+		result = append(result, record)
+	}
+
+	if err = rows.Err(); err != nil {
+		s.Log(ctx).Err(err).Msg("error reading rows")
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // Log returns logger with service field set.

@@ -21,7 +21,7 @@ func (api *API) HandleWithdraw(w http.ResponseWriter, r *http.Request) {
 
 	ctx, logger := logging.CtxLogger(r.Context())
 	logger = logger.With().Str(logging.HandlerNameKey, "withdraw").Logger()
-	logger.Info().Msg("handling register")
+	logger.Info().Msg("handling withdraw")
 
 	decoder := json.NewDecoder(r.Body)
 	defer r.Body.Close()

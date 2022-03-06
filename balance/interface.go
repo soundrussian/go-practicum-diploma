@@ -8,4 +8,5 @@ import (
 type Balance interface {
 	UserBalance(ctx context.Context, userID uint64) (*model.UserBalance, error)
 	Withdraw(ctx context.Context, userID uint64, withdrawal model.Withdrawal) error
+	Withdrawals(ctx context.Context, userID uint64) ([]model.Withdrawal, error)
 }
