@@ -5,7 +5,7 @@ import (
 	"flag"
 	"github.com/soundrussian/go-practicum-diploma/api"
 	auth "github.com/soundrussian/go-practicum-diploma/auth/v1"
-	"github.com/soundrussian/go-practicum-diploma/balance/mock"
+	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	storage "github.com/soundrussian/go-practicum-diploma/storage"
 	db "github.com/soundrussian/go-practicum-diploma/storage/v1"
@@ -45,8 +45,8 @@ func main() {
 		return
 	}
 
-	if a, err = api.New(authService, mock.BalanceMock{}); err != nil {
-		logger.Err(err).Msg("error initializing API")
+	if a, err = api.New(authService, new(mocks.Balance)); err != nil {
+		logger.Err(err).Msg("error intializing API")
 		return
 	}
 
