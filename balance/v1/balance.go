@@ -75,7 +75,7 @@ func (b *Balance) Withdrawals(ctx context.Context, userID uint64) ([]model.Withd
 	var err error
 
 	if withdrawals, err = b.storage.UserWithdrawals(ctx, userID); err != nil {
-
+		return []model.Withdrawal{}, err
 	}
 
 	return withdrawals, nil
