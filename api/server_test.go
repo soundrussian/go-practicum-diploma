@@ -17,7 +17,7 @@ func TestRunServer(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		api, err := New(new(mocks.Auth), new(mocks.Balance))
+		api, err := New(new(mocks.Auth), new(mocks.Balance), new(mocks.Order))
 		require.NoError(t, err)
 
 		runServerOnFreePort(t, ctx, api)
@@ -31,7 +31,7 @@ func TestRunServer_StopThroughContext(t *testing.T) {
 	t.Run("it stops server by cancelling context", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 
-		api, err := New(new(mocks.Auth), new(mocks.Balance))
+		api, err := New(new(mocks.Auth), new(mocks.Balance), new(mocks.Order))
 		require.NoError(t, err)
 
 		runServerOnFreePort(t, ctx, api)

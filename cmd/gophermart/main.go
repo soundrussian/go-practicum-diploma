@@ -6,6 +6,7 @@ import (
 	"github.com/soundrussian/go-practicum-diploma/api"
 	auth "github.com/soundrussian/go-practicum-diploma/auth/v1"
 	balance "github.com/soundrussian/go-practicum-diploma/balance/v1"
+	order "github.com/soundrussian/go-practicum-diploma/order/v1"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	storage "github.com/soundrussian/go-practicum-diploma/storage"
 	db "github.com/soundrussian/go-practicum-diploma/storage/v1"
@@ -19,6 +20,7 @@ func main() {
 	var a *api.API
 	var authService *auth.Auth
 	var balanceService *balance.Balance
+	var orderService *order.Order
 	var store storage.Storage
 	var err error
 
@@ -51,7 +53,12 @@ func main() {
 		return
 	}
 
-	if a, err = api.New(authService, balanceService); err != nil {
+	if orderService, err = order.New(store); err != nil {
+		logger.Err(err).Msg("error initializing order service")
+		return
+	}
+
+	if a, err = api.New(authService, balanceService, orderService); err != nil {
 		logger.Err(err).Msg("error intializing API")
 		return
 	}

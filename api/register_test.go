@@ -113,7 +113,7 @@ func TestHandleRegister(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, err := New(tt.args.auth, new(mocks.Balance))
+			a, err := New(tt.args.auth, new(mocks.Balance), new(mocks.Order))
 			require.NoError(t, err)
 
 			r := a.routes()

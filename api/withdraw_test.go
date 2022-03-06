@@ -115,7 +115,7 @@ func TestAPI_HandleWithdraw(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, err := New(new(mocks.Auth), tt.args.balance)
+			a, err := New(new(mocks.Auth), tt.args.balance, new(mocks.Order))
 			require.NoError(t, err)
 
 			r := a.routes()

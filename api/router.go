@@ -32,6 +32,12 @@ func (api *API) routes() *chi.Mux {
 
 			r.Post("/api/user/balance/withdraw", api.HandleWithdraw)
 		})
+
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AllowContentType("text/plain"))
+
+			r.Post("/api/user/orders", api.HandleOrder)
+		})
 	})
 
 	return r
