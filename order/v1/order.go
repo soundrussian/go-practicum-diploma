@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/rs/zerolog"
+	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/order"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"github.com/soundrussian/go-practicum-diploma/storage"
@@ -26,6 +27,24 @@ func New(storage storage.Storage) (*Order, error) {
 }
 
 func (o *Order) AcceptOrder(ctx context.Context, userID uint64, orderID string) error {
+	ord := model.Order{OrderID: orderID}
+	if err := ord.Validate(); err != nil {
+		o.Log(ctx).Err(err).Msgf("failed validating order %s", orderID)
+		return order.ErrOrderInvalid
+	}
+
+	if _, err := o.storage.AcceptOrder(ctx, userID, orderID); err != nil {
+		o.Log(ctx).Err(err).Msgf("error while storing order <%s> from user %d", orderID, userID)
+		if errors.Is(err, storage.ErrOrderExistsSameUser) {
+			return order.ErrAlreadyAccepted
+		}
+		if errors.Is(err, storage.ErrOrderExistsAnotherUser) {
+			return order.ErrConflict
+		}
+
+		return err
+	}
+
 	return nil
 }
 

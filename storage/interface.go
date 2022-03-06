@@ -11,5 +11,6 @@ type Storage interface {
 	UserBalance(ctx context.Context, userID uint64) (*model.UserBalance, error)
 	Withdraw(ctx context.Context, userID uint64, withdrawal model.Withdrawal) (*model.Withdrawal, error)
 	UserWithdrawals(ctx context.Context, userID uint64) ([]model.Withdrawal, error)
+	AcceptOrder(ctx context.Context, userID uint64, orderID string) (*model.Order, error)
 	Close()
 }

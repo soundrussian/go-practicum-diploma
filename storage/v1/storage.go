@@ -191,12 +191,71 @@ func (s *Storage) UserWithdrawals(ctx context.Context, userID uint64) ([]model.W
 	return result, nil
 }
 
+func (s *Storage) AcceptOrder(ctx context.Context, userID uint64, orderID string) (*model.Order, error) {
+	var tx *sql.Tx
+	var err error
+	if tx, err = s.db.BeginTx(ctx, nil); err != nil {
+		s.Log(ctx).Err(err).Msg("error starting transaction")
+		return nil, err
+	}
+
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			s.Log(ctx).Err(err).Msg("error rolling back transaction")
+		}
+	}()
+
+	if exists := s.sameOrAnotherUser(ctx, tx, orderID, userID); exists != nil {
+		return nil, exists
+	}
+
+	var order model.Order
+	now := time.Now()
+
+	if err = tx.QueryRowContext(ctx,
+		`INSERT INTO orders (order_id, user_id, uploaded_at) 
+				 VALUES ($1, $2, $3)
+				 RETURNING order_id, user_id, status, uploaded_at`,
+		orderID, userID, now,
+	).Scan(&order.OrderID, &order.UserID, &order.Status, &order.UploadedAt); err != nil {
+		s.Log(ctx).Err(err).Msgf("error while saving order <%s> for user %d", orderID, userID)
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		s.Log(ctx).Err(err).Msg("error while commiting transaction")
+		return nil, err
+	}
+
+	return &order, nil
+}
+
 // Log returns logger with service field set.
 func (s *Storage) Log(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.CtxLogger(ctx)
 	logger = logger.With().Str(logging.ServiceNameKey, "storage").Logger()
 
 	return &logger
+}
+
+func (s *Storage) sameOrAnotherUser(ctx context.Context, tx *sql.Tx, orderID string, currentUserID uint64) error {
+	var existingUser uint64
+	if err := tx.QueryRowContext(ctx,
+		`SELECT user_id FROM orders WHERE order_id = $1 LIMIT 1`,
+		orderID).Scan(&existingUser); err != nil {
+		s.Log(ctx).Err(err).Msgf("error determining which user uploaded order <%s>", orderID)
+		return err
+	}
+
+	if existingUser == 0 {
+		return nil
+	}
+
+	if existingUser == currentUserID {
+		return storage.ErrOrderExistsSameUser
+	}
+
+	return storage.ErrOrderExistsAnotherUser
 }
 
 func runMigrations(db *sql.DB) error {

@@ -14,6 +14,29 @@ type Storage struct {
 	mock.Mock
 }
 
+// AcceptOrder provides a mock function with given fields: ctx, userID, orderID
+func (_m *Storage) AcceptOrder(ctx context.Context, userID uint64, orderID string) (*model.Order, error) {
+	ret := _m.Called(ctx, userID, orderID)
+
+	var r0 *model.Order
+	if rf, ok := ret.Get(0).(func(context.Context, uint64, string) *model.Order); ok {
+		r0 = rf(ctx, userID, orderID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Order)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint64, string) error); ok {
+		r1 = rf(ctx, userID, orderID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Close provides a mock function with given fields:
 func (_m *Storage) Close() {
 	_m.Called()
