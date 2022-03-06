@@ -29,7 +29,7 @@ func (api *API) routes() *chi.Mux {
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AllowContentType("application/json"))
 
-			r.Post("/api/user/withdraw", api.HandleWithdraw)
+			r.Post("/api/user/balance/withdraw", api.HandleWithdraw)
 		})
 	})
 

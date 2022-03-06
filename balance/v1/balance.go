@@ -61,9 +61,13 @@ func (b *Balance) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 
 	if _, err = b.storage.Withdraw(ctx, userID, withdrawal); err != nil {
 		b.Log(ctx).Err(err).Msgf("failed to make withdrawal %+v for user %d", withdrawal, userID)
+		if errors.Is(err, storage.ErrNotEnoughBalance) {
+			return balance.ErrNotEnoughBalance
+		}
+		return balance.ErrInternalError
 	}
 
-	return err
+	return nil
 }
 
 // Log returns logger with service field set.

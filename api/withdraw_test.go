@@ -122,7 +122,7 @@ func TestAPI_HandleWithdraw(t *testing.T) {
 			ts := httptest.NewServer(r)
 			defer ts.Close()
 
-			req, err := http.NewRequest("POST", ts.URL+"/api/user/withdraw", strings.NewReader(tt.args.body))
+			req, err := http.NewRequest("POST", ts.URL+"/api/user/balance/withdraw", strings.NewReader(tt.args.body))
 			require.NoError(t, err)
 
 			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tt.args.token))

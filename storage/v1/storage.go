@@ -16,6 +16,7 @@ import (
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"github.com/soundrussian/go-practicum-diploma/storage"
+	"time"
 )
 
 var _ storage.Storage = (*Storage)(nil)
@@ -108,8 +109,53 @@ func (s *Storage) UserBalance(ctx context.Context, userID uint64) (*model.UserBa
 }
 
 func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.Withdrawal) (*model.Withdrawal, error) {
-	//TODO implement me
-	panic("implement me")
+	var tx *sql.Tx
+	var err error
+	if tx, err = s.db.BeginTx(ctx, nil); err != nil {
+		s.Log(ctx).Err(err).Msg("error starting transaction")
+		return nil, err
+	}
+
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			s.Log(ctx).Err(err).Msg("error rolling back transaction")
+		}
+	}()
+
+	// Check current balance
+	var currentBalance int
+
+	if err = s.db.QueryRowContext(ctx,
+		`SELECT SUM(amount) FROM transactions WHERE user_id = $1 LIMIT 1`,
+		userID).Scan(&currentBalance); err != nil {
+		s.Log(ctx).Err(err).Msgf("failed to get current balance for user %d", userID)
+		return nil, err
+	}
+
+	if currentBalance < withdrawal.Sum {
+		s.Log(ctx).Info().Msgf("user's %d current balance of %d is less that withdrawal amount of %d", userID, currentBalance, withdrawal.Sum)
+		return nil, storage.ErrNotEnoughBalance
+	}
+
+	now := time.Now()
+	if _, err = s.db.ExecContext(ctx,
+		`INSERT INTO transactions(user_id, amount, created_at) VALUES ($1, $2, $3)`,
+		userID, withdrawal.Sum*-1, now,
+	); err != nil {
+		s.Log(ctx).Err(err).Msg("error saving withdrawal to DB")
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		s.Log(ctx).Err(err).Msg("error committing transaction")
+		return nil, err
+	}
+
+	return &model.Withdrawal{
+		Order:       withdrawal.Order,
+		Sum:         withdrawal.Sum,
+		ProcessedAt: now,
+	}, nil
 }
 
 // Log returns logger with service field set.

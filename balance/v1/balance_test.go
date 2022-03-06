@@ -3,9 +3,11 @@ package v1
 import (
 	"context"
 	"errors"
+	"github.com/soundrussian/go-practicum-diploma/balance"
 	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/storage"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"reflect"
 	"testing"
@@ -134,7 +136,7 @@ func TestBalance_Withdraw(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "returns error if sum is less than zero",
@@ -145,7 +147,7 @@ func TestBalance_Withdraw(t *testing.T) {
 				userID:     100,
 				withdrawal: model.Withdrawal{Sum: -1},
 			},
-			wantErr: true,
+			wantErr: balance.ErrInvalidSum,
 		},
 		{
 			name: "returns error if sum is zero",
@@ -156,7 +158,7 @@ func TestBalance_Withdraw(t *testing.T) {
 				userID:     100,
 				withdrawal: model.Withdrawal{Sum: 0},
 			},
-			wantErr: true,
+			wantErr: balance.ErrInvalidSum,
 		},
 		{
 			name: "returns error if order number is missing",
@@ -167,7 +169,7 @@ func TestBalance_Withdraw(t *testing.T) {
 				userID:     100,
 				withdrawal: model.Withdrawal{Sum: 10},
 			},
-			wantErr: true,
+			wantErr: balance.ErrInvalidOrder,
 		},
 		{
 			name: "returns error if order number is not a number",
@@ -178,7 +180,7 @@ func TestBalance_Withdraw(t *testing.T) {
 				userID:     100,
 				withdrawal: model.Withdrawal{Order: "not a number", Sum: 10},
 			},
-			wantErr: true,
+			wantErr: balance.ErrInvalidOrder,
 		},
 		{
 			name: "returns error if order checksum is invalid",
@@ -189,7 +191,7 @@ func TestBalance_Withdraw(t *testing.T) {
 				userID:     100,
 				withdrawal: model.Withdrawal{Order: "7992739871", Sum: 10},
 			},
-			wantErr: true,
+			wantErr: balance.ErrInvalidOrder,
 		},
 		{
 			name: "returns error if storage reported error",
@@ -200,7 +202,18 @@ func TestBalance_Withdraw(t *testing.T) {
 				userID:     100,
 				withdrawal: model.Withdrawal{Order: "79927398713", Sum: 10},
 			},
-			wantErr: true,
+			wantErr: balance.ErrInternalError,
+		},
+		{
+			name: "returns ErrNotEnoughBalance if storage tells so",
+			fields: fields{
+				storage: notEnoughBalanceWithdrawal(),
+			},
+			args: args{
+				userID:     100,
+				withdrawal: model.Withdrawal{Order: "79927398713", Sum: 10},
+			},
+			wantErr: balance.ErrNotEnoughBalance,
 		},
 		{
 			name: "does not return error if storage reported success",
@@ -211,7 +224,6 @@ func TestBalance_Withdraw(t *testing.T) {
 				userID:     100,
 				withdrawal: model.Withdrawal{Order: "79927398713", Sum: 10},
 			},
-			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -219,8 +231,12 @@ func TestBalance_Withdraw(t *testing.T) {
 			b := &Balance{
 				storage: tt.fields.storage,
 			}
-			if err := b.Withdraw(context.Background(), tt.args.userID, tt.args.withdrawal); (err != nil) != tt.wantErr {
-				t.Errorf("Withdraw() error = %v, wantErr %v", err, tt.wantErr)
+			err := b.Withdraw(context.Background(), tt.args.userID, tt.args.withdrawal)
+
+			if tt.wantErr == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, tt.wantErr)
 			}
 		})
 	}
@@ -235,5 +251,11 @@ func failingWithdrawal() *mocks.Storage {
 func successfulWithdrawal() *mocks.Storage {
 	m := new(mocks.Storage)
 	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(&model.Withdrawal{}, nil)
+	return m
+}
+
+func notEnoughBalanceWithdrawal() *mocks.Storage {
+	m := new(mocks.Storage)
+	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(nil, storage.ErrNotEnoughBalance)
 	return m
 }
