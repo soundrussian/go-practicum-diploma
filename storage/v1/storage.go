@@ -242,7 +242,7 @@ func (s *Storage) sameOrAnotherUser(ctx context.Context, tx *sql.Tx, orderID str
 	var existingUser uint64
 	if err := tx.QueryRowContext(ctx,
 		`SELECT user_id FROM orders WHERE order_id = $1 LIMIT 1`,
-		orderID).Scan(&existingUser); err != nil {
+		orderID).Scan(&existingUser); err != nil && err != sql.ErrNoRows {
 		s.Log(ctx).Err(err).Msgf("error determining which user uploaded order <%s>", orderID)
 		return err
 	}
