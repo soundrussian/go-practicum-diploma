@@ -111,6 +111,29 @@ func (_m *Storage) UserBalance(ctx context.Context, userID uint64) (*model.UserB
 	return r0, r1
 }
 
+// UserOrders provides a mock function with given fields: ctx, userID
+func (_m *Storage) UserOrders(ctx context.Context, userID uint64) ([]model.Order, error) {
+	ret := _m.Called(ctx, userID)
+
+	var r0 []model.Order
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) []model.Order); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.Order)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UserWithdrawals provides a mock function with given fields: ctx, userID
 func (_m *Storage) UserWithdrawals(ctx context.Context, userID uint64) ([]model.Withdrawal, error) {
 	ret := _m.Called(ctx, userID)

@@ -230,6 +230,39 @@ func (s *Storage) AcceptOrder(ctx context.Context, userID uint64, orderID string
 	return &order, nil
 }
 
+func (s *Storage) UserOrders(ctx context.Context, userID uint64) ([]model.Order, error) {
+	var rows *sql.Rows
+	var err error
+	result := make([]model.Order, 0)
+	if rows, err = s.db.QueryContext(ctx,
+		`SELECT order_id, user_id, accrual, status, uploaded_at
+				FROM orders
+				WHERE user_id = $1
+                ORDER BY uploaded_at DESC
+				`,
+		userID); err != nil {
+		s.Log(ctx).Err(err).Msgf("failed to fetch orders for user_id %d", userID)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		record := model.Order{}
+		if err = rows.Scan(&record.OrderID, &record.UserID, &record.Accrual, &record.Status, &record.UploadedAt); err != nil {
+			s.Log(ctx).Err(err).Msg("failed to scan row")
+			return nil, err
+		}
+		result = append(result, record)
+	}
+
+	if err = rows.Err(); err != nil {
+		s.Log(ctx).Err(err).Msg("error reading rows")
+		return nil, err
+	}
+
+	return result, nil
+}
+
 // Log returns logger with service field set.
 func (s *Storage) Log(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.CtxLogger(ctx)

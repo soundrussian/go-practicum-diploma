@@ -49,8 +49,15 @@ func (o *Order) AcceptOrder(ctx context.Context, userID uint64, orderID string) 
 }
 
 func (o *Order) UserOrders(ctx context.Context, userID uint64) ([]model.Order, error) {
-	//TODO implement me
-	panic("implement me")
+	var orders []model.Order
+	var err error
+
+	if orders, err = o.storage.UserOrders(ctx, userID); err != nil {
+		o.Log(ctx).Err(err).Msgf("failed to fetch orders for user %d", userID)
+		return []model.Order{}, nil
+	}
+
+	return orders, nil
 }
 
 // Log returns logger with service field set.
