@@ -11,8 +11,8 @@ import (
 )
 
 type withdrawJSONRequest struct {
-	Order string `json:"order"`
-	Sum   int    `json:"sum"`
+	Order string  `json:"order"`
+	Sum   float32 `json:"sum"`
 }
 
 func (api *API) HandleWithdraw(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +34,7 @@ func (api *API) HandleWithdraw(w http.ResponseWriter, r *http.Request) {
 
 	userID, _ := curruser.CurrentUser(ctx)
 	if err = api.balanceService.Withdraw(ctx, userID, requestToWithdrawal(jsonRequest)); err != nil {
-		logger.Err(err).Msgf("failed to withdraw %d point from user %d for order %s", jsonRequest.Sum, userID, jsonRequest.Order)
+		logger.Err(err).Msgf("failed to withdraw %f point from user %d for order %s", jsonRequest.Sum, userID, jsonRequest.Order)
 		if errors.Is(err, balance.ErrNotEnoughBalance) {
 			http.Error(w, err.Error(), http.StatusPaymentRequired)
 			return

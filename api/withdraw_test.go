@@ -106,7 +106,7 @@ func TestAPI_HandleWithdraw(t *testing.T) {
 				token:   token(100),
 				balance: successfulWithdrawal(),
 				headers: map[string]string{"Content-Type": "application/json"},
-				body:    `{"order": "79927398713", "sum": 10}"`,
+				body:    `{"order": "79927398713", "sum": 10.22}"`,
 			},
 			want: want{
 				status: http.StatusOK,

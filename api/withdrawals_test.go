@@ -71,7 +71,7 @@ func TestAPI_HandleWithdrawals(t *testing.T) {
 				balance: successfulWithdrawalList([]model.Withdrawal{
 					{
 						Order:       "1",
-						Sum:         100,
+						Sum:         100.05,
 						ProcessedAt: time.Date(2022, 03, 06, 05, 04, 01, 0, time.UTC),
 					},
 					{
@@ -83,7 +83,7 @@ func TestAPI_HandleWithdrawals(t *testing.T) {
 			},
 			want: want{
 				status: http.StatusOK,
-				body:   `[{"order":"1","sum":100,"processed_at":"2022-03-06T05:04:01Z"},{"order":"1","sum":25,"processed_at":"2022-03-06T06:04:01Z"}]` + "\n",
+				body:   `[{"order":"1","sum":100.05,"processed_at":"2022-03-06T05:04:01Z"},{"order":"1","sum":25,"processed_at":"2022-03-06T06:04:01Z"}]` + "\n",
 			},
 		},
 	}

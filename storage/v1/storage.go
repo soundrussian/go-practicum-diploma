@@ -124,6 +124,7 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 
 	// Check current balance
 	var currentBalance int
+	withdrawSum := int(withdrawal.Sum * 100)
 
 	if err = s.db.QueryRowContext(ctx,
 		`SELECT SUM(amount) FROM transactions WHERE user_id = $1 LIMIT 1`,
@@ -132,15 +133,15 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 		return nil, err
 	}
 
-	if currentBalance < withdrawal.Sum {
-		s.Log(ctx).Info().Msgf("user's %d current balance of %d is less that withdrawal amount of %d", userID, currentBalance, withdrawal.Sum)
+	if currentBalance < withdrawSum {
+		s.Log(ctx).Info().Msgf("user's %d current balance of %d is less that withdrawal amount of %d", userID, currentBalance, withdrawSum)
 		return nil, storage.ErrNotEnoughBalance
 	}
 
 	now := time.Now()
 	if _, err = s.db.ExecContext(ctx,
 		`INSERT INTO transactions(user_id, order_id, amount, created_at) VALUES ($1, $2, $3, $4)`,
-		userID, withdrawal.Order, withdrawal.Sum*-1, now,
+		userID, withdrawal.Order, withdrawSum*-1, now,
 	); err != nil {
 		s.Log(ctx).Err(err).Msg("error saving withdrawal to DB")
 		return nil, err
@@ -180,6 +181,7 @@ func (s *Storage) UserWithdrawals(ctx context.Context, userID uint64) ([]model.W
 			s.Log(ctx).Err(err).Msg("failed to scan row")
 			return nil, err
 		}
+		record.Sum = record.Sum / 100
 		result = append(result, record)
 	}
 
