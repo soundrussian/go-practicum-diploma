@@ -24,7 +24,7 @@ const (
 
 type Order struct {
 	UserID     uint64      `json:"-"`
-	Accrual    int         `json:"accrual,omitempty"`
+	Accrual    float64     `json:"accrual,omitempty"`
 	OrderID    string      `json:"number"`
 	Status     OrderStatus `json:"-"`
 	UploadedAt time.Time   `json:"-"`
