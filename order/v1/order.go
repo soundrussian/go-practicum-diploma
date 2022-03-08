@@ -48,6 +48,11 @@ func (o *Order) AcceptOrder(ctx context.Context, userID uint64, orderID string) 
 	return nil
 }
 
+func (o *Order) UserOrders(ctx context.Context, userID uint64) ([]model.Order, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 // Log returns logger with service field set.
 func (o *Order) Log(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.CtxLogger(ctx)

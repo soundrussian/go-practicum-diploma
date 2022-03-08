@@ -38,6 +38,8 @@ func (api *API) routes() *chi.Mux {
 
 			r.Post("/api/user/orders", api.HandleOrder)
 		})
+
+		r.Get("/api/user/orders", api.HandleOrders)
 	})
 
 	return r
