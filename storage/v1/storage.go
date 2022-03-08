@@ -26,27 +26,59 @@ type Storage struct {
 	db *sql.DB
 }
 
-func (s *Storage) UpdateOrder(ctx context.Context, orderID string, status model.OrderStatus, accrual float32) (*model.Order, error) {
-	var order model.Order
-
-	// Convert rubles to kopecks
-	accrualSum := int(accrual * 100)
-
-	if err := s.db.QueryRowContext(ctx,
-		`UPDATE orders
-		SET status = $1::integer, accrual = $2
-		WHERE order_id = $3
-		RETURNING order_id, user_id, accrual, status, uploaded_at
-		`, int(status), accrualSum, orderID).
-		Scan(&order.OrderID, &order.UserID, &order.Accrual, &order.Status, &order.UploadedAt); err != nil {
-		s.Log(ctx).Err(err).Msgf("failed updating order <%s> with status %d and accrual %f", orderID, status, accrual)
-		return nil, err
+func (s *Storage) AddAccrual(ctx context.Context, orderID string, accrual float64) error {
+	var tx *sql.Tx
+	var err error
+	if tx, err = s.db.BeginTx(ctx, nil); err != nil {
+		s.Log(ctx).Err(err).Msg("error starting transaction")
+		return err
 	}
 
-	// Convert kopecks to rubles
-	order.Accrual = order.Accrual / 100.0
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			s.Log(ctx).Err(err).Msg("error rolling back transaction")
+		}
+	}()
 
-	return &order, nil
+	// Convert accrual to int
+	accrualSum := int(math.Round(accrual * 100))
+	var userID uint64
+
+	if err = tx.QueryRowContext(ctx,
+		`UPDATE orders SET accrual = $1 WHERE order_id = $2 RETURNING user_id`,
+		accrualSum, orderID).Scan(&userID); err != nil {
+		s.Log(ctx).Err(err).Msgf("failed to update accrual to %d for order %s", accrualSum, orderID)
+		return err
+	}
+
+	now := time.Now()
+
+	if _, err = tx.ExecContext(ctx,
+		`INSERT INTO transactions (user_id, order_id, amount, created_at) VALUES ($1, $2, $3, $4)`,
+		userID, orderID, accrualSum, now); err != nil {
+		s.Log(ctx).Err(err).Msgf("failed to save transaction for user %d", userID)
+		return err
+	}
+
+	if err = tx.Commit(); err != nil && err != sql.ErrTxDone {
+		s.Log(ctx).Err(err).Msg("error committing transaction")
+		return err
+	}
+
+	return nil
+}
+
+func (s *Storage) UpdateOrderStatus(ctx context.Context, orderID string, status model.OrderStatus) error {
+	if _, err := s.db.ExecContext(ctx,
+		`UPDATE orders
+		SET status = $1::integer
+		WHERE order_id = $2
+		`, int(status), orderID); err != nil {
+		s.Log(ctx).Err(err).Msgf("failed updating order <%s> with status %d", orderID, status)
+		return err
+	}
+
+	return nil
 }
 
 func (s *Storage) OrdersWithStatus(ctx context.Context, status model.OrderStatus, limit int) ([]string, error) {
@@ -58,7 +90,6 @@ func (s *Storage) OrdersWithStatus(ctx context.Context, status model.OrderStatus
 		`SELECT order_id
 				FROM orders
 				WHERE status = $1::integer
-                ORDER BY uploaded_at ASC
 				LIMIT $2
 				`,
 		int(status), limit); err != nil {
@@ -180,7 +211,7 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 	}
 
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
 			s.Log(ctx).Err(err).Msg("error rolling back transaction")
 		}
 	}()
@@ -190,7 +221,7 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 	// Convert withdrawal to int
 	withdrawSum := int(math.Round(withdrawal.Sum * 100))
 
-	if err = s.db.QueryRowContext(ctx,
+	if err = tx.QueryRowContext(ctx,
 		`SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE user_id = $1 LIMIT 1`,
 		userID).Scan(&currentBalance); err != nil {
 		s.Log(ctx).Err(err).Msgf("failed to get current balance for user %d", userID)
@@ -203,7 +234,7 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 	}
 
 	now := time.Now()
-	if _, err = s.db.ExecContext(ctx,
+	if _, err = tx.ExecContext(ctx,
 		`INSERT INTO transactions(user_id, order_id, amount, created_at) VALUES ($1, $2, $3, $4)`,
 		userID, withdrawal.Order, withdrawSum*-1, now,
 	); err != nil {
@@ -228,7 +259,7 @@ func (s *Storage) UserWithdrawals(ctx context.Context, userID uint64) ([]model.W
 	var err error
 	result := make([]model.Withdrawal, 0)
 	if rows, err = s.db.QueryContext(ctx,
-		`SELECT order_id AS order, amount * -1 AS sum, created_at AS processed_at
+		`SELECT order_id AS "order", amount * -1 AS sum, created_at AS processed_at
 				FROM transactions
 				WHERE user_id = $1
                   AND amount < 0
@@ -290,7 +321,7 @@ func (s *Storage) AcceptOrder(ctx context.Context, userID uint64, orderID string
 	}
 
 	if err = tx.Commit(); err != nil {
-		s.Log(ctx).Err(err).Msg("error while commiting transaction")
+		s.Log(ctx).Err(err).Msg("error while committing transaction")
 		return nil, err
 	}
 

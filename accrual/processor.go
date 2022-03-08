@@ -82,7 +82,7 @@ func (acc *Accrual) Process(ctx context.Context, orderID string) error {
 
 	// Mark order as processing so that it won't go into next batch
 	// while being processed
-	if _, err = acc.storage.UpdateOrder(ctx, orderID, model.OrderProcessing, 0); err != nil {
+	if err = acc.storage.UpdateOrderStatus(ctx, orderID, model.OrderProcessing); err != nil {
 		acc.Log(ctx).Err(err).Msgf("failed to mark order <%s> as processing", orderID)
 		return err
 	}
@@ -96,7 +96,7 @@ func (acc *Accrual) Process(ctx context.Context, orderID string) error {
 
 	if strings.ToLower(res.Status) == "invalid" {
 		acc.Log(ctx).Info().Msgf("order <%s> has been marked as invalid", orderID)
-		if _, err = acc.storage.UpdateOrder(ctx, orderID, model.OrderInvalid, 0); err != nil {
+		if err = acc.storage.UpdateOrderStatus(ctx, orderID, model.OrderInvalid); err != nil {
 			acc.Log(ctx).Err(err).Msgf("failed to mark order <%s> as invalid", orderID)
 			return err
 		}
@@ -105,8 +105,8 @@ func (acc *Accrual) Process(ctx context.Context, orderID string) error {
 
 	if strings.ToLower(res.Status) == "processed" {
 		acc.Log(ctx).Info().Msgf("order <%s> has been processed with accrual %f", orderID, res.Accrual)
-		if _, err = acc.storage.UpdateOrder(ctx, orderID, model.OrderProcessed, res.Accrual); err != nil {
-			acc.Log(ctx).Err(err).Msgf("failed to mark order <%s> as invalid", orderID)
+		if err = acc.storage.UpdateOrderStatus(ctx, orderID, model.OrderProcessed); err != nil {
+			acc.Log(ctx).Err(err).Msgf("failed to mark order <%s> as processed", orderID)
 			return err
 		}
 		return nil
@@ -114,7 +114,7 @@ func (acc *Accrual) Process(ctx context.Context, orderID string) error {
 
 	// If we are this far, it means that the order is not processed by accrual yet,
 	// So mark it as new
-	if _, err = acc.storage.UpdateOrder(ctx, orderID, model.OrderNew, 0); err != nil {
+	if err = acc.storage.UpdateOrderStatus(ctx, orderID, model.OrderNew); err != nil {
 		acc.Log(ctx).Err(err).Msgf("failed to mark order <%s> as new", orderID)
 		return err
 	}

@@ -37,6 +37,20 @@ func (_m *Storage) AcceptOrder(ctx context.Context, userID uint64, orderID strin
 	return r0, r1
 }
 
+// AddAccrual provides a mock function with given fields: ctx, orderID, accrual
+func (_m *Storage) AddAccrual(ctx context.Context, orderID string, accrual float64) error {
+	ret := _m.Called(ctx, orderID, accrual)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, float64) error); ok {
+		r0 = rf(ctx, orderID, accrual)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Close provides a mock function with given fields:
 func (_m *Storage) Close() {
 	_m.Called()
@@ -111,27 +125,18 @@ func (_m *Storage) OrdersWithStatus(ctx context.Context, status model.OrderStatu
 	return r0, r1
 }
 
-// UpdateOrder provides a mock function with given fields: ctx, orderID, status, accrual
-func (_m *Storage) UpdateOrder(ctx context.Context, orderID string, status model.OrderStatus, accrual float32) (*model.Order, error) {
-	ret := _m.Called(ctx, orderID, status, accrual)
+// UpdateOrderStatus provides a mock function with given fields: ctx, orderID, status
+func (_m *Storage) UpdateOrderStatus(ctx context.Context, orderID string, status model.OrderStatus) error {
+	ret := _m.Called(ctx, orderID, status)
 
-	var r0 *model.Order
-	if rf, ok := ret.Get(0).(func(context.Context, string, model.OrderStatus, float32) *model.Order); ok {
-		r0 = rf(ctx, orderID, status, accrual)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.OrderStatus) error); ok {
+		r0 = rf(ctx, orderID, status)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Order)
-		}
+		r0 = ret.Error(0)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, model.OrderStatus, float32) error); ok {
-		r1 = rf(ctx, orderID, status, accrual)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // UserBalance provides a mock function with given fields: ctx, userID
