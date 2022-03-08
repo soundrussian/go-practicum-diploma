@@ -2,7 +2,7 @@ BEGIN;
 CREATE TABLE orders(
     order_id varchar(255) PRIMARY KEY,
     user_id integer REFERENCES users ON DELETE CASCADE,
-    accrual integer,
+    accrual integer NOT NULL DEFAULT 0,
     status integer DEFAULT 0,
     uploaded_at timestamp
 );
