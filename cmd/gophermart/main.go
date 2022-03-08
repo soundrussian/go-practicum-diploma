@@ -70,14 +70,22 @@ func main() {
 		logger.Err(err).Msg("failed to start accrual processor")
 	}
 
+	timer := time.NewTicker(time.Second)
+	defer timer.Stop()
+
 	go func() {
-		timer := time.NewTicker(time.Second)
-		select {
-		case <-timer.C:
-			if err := processor.Tick(ctx); err != nil {
-				logger.Err(err).Msg("error during processor tick")
+		for {
+			select {
+			case <-timer.C:
+				logger.Info().Msg("tick!")
+				if err := processor.Tick(ctx); err != nil {
+					logger.Err(err).Msg("error during processor tick")
+				}
+			case <-ctx.Done():
+				logger.Info().Msg("shutting down processor")
 			}
 		}
+		logger.Info().Msg("done")
 	}()
 
 	serverDone, err := a.RunServer(ctx)

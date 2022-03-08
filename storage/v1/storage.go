@@ -34,8 +34,8 @@ func (s *Storage) UpdateOrder(ctx context.Context, orderID string, status model.
 
 	if err := s.db.QueryRowContext(ctx,
 		`UPDATE orders
-		SET status = $1, accrual = $2
-		WHERE order_id = $1
+		SET status = $1::integer, accrual = $2
+		WHERE order_id = $3
 		RETURNING order_id, user_id, accrual, status, uploaded_at
 		`, int(status), accrualSum, orderID).
 		Scan(&order.OrderID, &order.UserID, &order.Accrual, &order.Status, &order.UploadedAt); err != nil {
@@ -57,7 +57,7 @@ func (s *Storage) OrdersWithStatus(ctx context.Context, status model.OrderStatus
 	if rows, err = s.db.QueryContext(ctx,
 		`SELECT order_id
 				FROM orders
-				WHERE status = $1
+				WHERE status = $1::integer
                 ORDER BY uploaded_at ASC
 				LIMIT $2
 				`,
