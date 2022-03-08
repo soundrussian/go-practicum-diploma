@@ -355,6 +355,9 @@ func (s *Storage) UserOrders(ctx context.Context, userID uint64) ([]model.Order,
 			s.Log(ctx).Err(err).Msg("failed to scan row")
 			return nil, err
 		}
+		// Convert kopecks to rubles
+		record.Accrual = record.Accrual / 100.0
+		
 		result = append(result, record)
 	}
 
