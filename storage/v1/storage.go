@@ -16,6 +16,7 @@ import (
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"github.com/soundrussian/go-practicum-diploma/storage"
+	"math"
 	"time"
 )
 
@@ -124,10 +125,10 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 
 	// Check current balance
 	var currentBalance int
-	withdrawSum := int(withdrawal.Sum * 100)
+	withdrawSum := int(math.Round(withdrawal.Sum * 100))
 
 	if err = s.db.QueryRowContext(ctx,
-		`SELECT SUM(amount) FROM transactions WHERE user_id = $1 LIMIT 1`,
+		`SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE user_id = $1 LIMIT 1`,
 		userID).Scan(&currentBalance); err != nil {
 		s.Log(ctx).Err(err).Msgf("failed to get current balance for user %d", userID)
 		return nil, err
