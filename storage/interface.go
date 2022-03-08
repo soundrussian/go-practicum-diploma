@@ -13,5 +13,7 @@ type Storage interface {
 	UserWithdrawals(ctx context.Context, userID uint64) ([]model.Withdrawal, error)
 	AcceptOrder(ctx context.Context, userID uint64, orderID string) (*model.Order, error)
 	UserOrders(ctx context.Context, userID uint64) ([]model.Order, error)
+	OrdersWithStatus(ctx context.Context, status model.OrderStatus, limit int) ([]string, error)
+	UpdateOrder(ctx context.Context, orderID string, status model.OrderStatus, accrual float32) (*model.Order, error)
 	Close()
 }

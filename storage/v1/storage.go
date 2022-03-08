@@ -26,6 +26,68 @@ type Storage struct {
 	db *sql.DB
 }
 
+func (s *Storage) UpdateOrder(ctx context.Context, orderID string, status model.OrderStatus, accrual float32) (*model.Order, error) {
+	var order model.Order
+
+	// Convert rubles to kopecks
+	accrualSum := int(accrual * 100)
+
+	if err := s.db.QueryRowContext(ctx,
+		`UPDATE orders
+		SET status = $1, accrual = $2
+		WHERE order_id = $1
+		RETURNING order_id, user_id, accrual, status, uploaded_at
+		`, status, accrualSum, orderID).
+		Scan(&order.OrderID, &order.UserID, &order.Accrual, &order.Status, &order.UploadedAt); err != nil {
+		s.Log(ctx).Err(err).Msgf("failed updating order <%s> with status %d and accrual %f", orderID, status, accrual)
+		return nil, err
+	}
+
+	// Convert kopecks to rubles
+	order.Accrual = order.Accrual / 100.0
+
+	return &order, nil
+}
+
+func (s *Storage) OrdersWithStatus(ctx context.Context, status model.OrderStatus, limit int) ([]string, error) {
+	var rows *sql.Rows
+	var err error
+	result := make([]string, 0)
+
+	if rows, err = s.db.QueryContext(ctx,
+		`SELECT order_id
+				FROM orders
+				WHERE status = $1
+                ORDER BY uploaded_at ASC
+				LIMIT $2
+				`,
+		status, limit); err != nil {
+		if err == sql.ErrNoRows {
+			s.Log(ctx).Info().Msgf("no orders with status %d", status)
+			return result, nil
+		}
+		s.Log(ctx).Err(err).Msgf("failed to fetch orders with status %d", status)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var orderID string
+		if err = rows.Scan(&orderID); err != nil {
+			s.Log(ctx).Err(err).Msg("failed to scan row")
+			return nil, err
+		}
+		result = append(result, orderID)
+	}
+
+	if err = rows.Err(); err != nil {
+		s.Log(ctx).Err(err).Msg("error reading rows")
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (s *Storage) Close() {
 	if s.db != nil {
 		s.db.Close()

@@ -88,6 +88,52 @@ func (_m *Storage) FetchUser(ctx context.Context, login string) (*model.User, er
 	return r0, r1
 }
 
+// OrdersWithStatus provides a mock function with given fields: ctx, status, limit
+func (_m *Storage) OrdersWithStatus(ctx context.Context, status model.OrderStatus, limit int) ([]string, error) {
+	ret := _m.Called(ctx, status, limit)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context, model.OrderStatus, int) []string); ok {
+		r0 = rf(ctx, status, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, model.OrderStatus, int) error); ok {
+		r1 = rf(ctx, status, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateOrder provides a mock function with given fields: ctx, orderID, status, accrual
+func (_m *Storage) UpdateOrder(ctx context.Context, orderID string, status model.OrderStatus, accrual float32) (*model.Order, error) {
+	ret := _m.Called(ctx, orderID, status, accrual)
+
+	var r0 *model.Order
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.OrderStatus, float32) *model.Order); ok {
+		r0 = rf(ctx, orderID, status, accrual)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Order)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, model.OrderStatus, float32) error); ok {
+		r1 = rf(ctx, orderID, status, accrual)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UserBalance provides a mock function with given fields: ctx, userID
 func (_m *Storage) UserBalance(ctx context.Context, userID uint64) (*model.UserBalance, error) {
 	ret := _m.Called(ctx, userID)

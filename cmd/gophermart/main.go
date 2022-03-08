@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/soundrussian/go-practicum-diploma/accrual"
 	"github.com/soundrussian/go-practicum-diploma/api"
 	auth "github.com/soundrussian/go-practicum-diploma/auth/v1"
 	balance "github.com/soundrussian/go-practicum-diploma/balance/v1"
@@ -14,6 +15,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -62,6 +64,21 @@ func main() {
 		logger.Err(err).Msg("error intializing API")
 		return
 	}
+
+	var processor *accrual.Accrual
+	if processor, err = accrual.New(store); err != nil {
+		logger.Err(err).Msg("failed to start accrual processor")
+	}
+
+	go func() {
+		timer := time.NewTicker(time.Second)
+		select {
+		case <-timer.C:
+			if err := processor.Tick(ctx); err != nil {
+				logger.Err(err).Msg("error during processor tick")
+			}
+		}
+	}()
 
 	serverDone, err := a.RunServer(ctx)
 
