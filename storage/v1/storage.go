@@ -37,7 +37,7 @@ func (s *Storage) UpdateOrder(ctx context.Context, orderID string, status model.
 		SET status = $1, accrual = $2
 		WHERE order_id = $1
 		RETURNING order_id, user_id, accrual, status, uploaded_at
-		`, status, accrualSum, orderID).
+		`, int(status), accrualSum, orderID).
 		Scan(&order.OrderID, &order.UserID, &order.Accrual, &order.Status, &order.UploadedAt); err != nil {
 		s.Log(ctx).Err(err).Msgf("failed updating order <%s> with status %d and accrual %f", orderID, status, accrual)
 		return nil, err
@@ -61,7 +61,7 @@ func (s *Storage) OrdersWithStatus(ctx context.Context, status model.OrderStatus
                 ORDER BY uploaded_at ASC
 				LIMIT $2
 				`,
-		status, limit); err != nil {
+		int(status), limit); err != nil {
 		if err == sql.ErrNoRows {
 			s.Log(ctx).Info().Msgf("no orders with status %d", status)
 			return result, nil
