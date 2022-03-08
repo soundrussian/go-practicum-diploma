@@ -37,13 +37,13 @@ func (_m *Storage) AcceptOrder(ctx context.Context, userID uint64, orderID strin
 	return r0, r1
 }
 
-// AddAccrual provides a mock function with given fields: ctx, orderID, accrual
-func (_m *Storage) AddAccrual(ctx context.Context, orderID string, accrual float64) error {
-	ret := _m.Called(ctx, orderID, accrual)
+// AddAccrual provides a mock function with given fields: ctx, orderID, status, accrual
+func (_m *Storage) AddAccrual(ctx context.Context, orderID string, status model.OrderStatus, accrual float64) error {
+	ret := _m.Called(ctx, orderID, status, accrual)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, float64) error); ok {
-		r0 = rf(ctx, orderID, accrual)
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.OrderStatus, float64) error); ok {
+		r0 = rf(ctx, orderID, status, accrual)
 	} else {
 		r0 = ret.Error(0)
 	}
