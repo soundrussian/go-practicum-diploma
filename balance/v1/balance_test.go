@@ -112,7 +112,7 @@ func failingStorage() *mocks.Storage {
 	return m
 }
 
-func successfulStorage(current uint64, withdrawn uint64) *mocks.Storage {
+func successfulStorage(current float64, withdrawn float64) *mocks.Storage {
 	m := new(mocks.Storage)
 	m.On("UserBalance", mock.Anything, mock.Anything).Return(
 		&model.UserBalance{

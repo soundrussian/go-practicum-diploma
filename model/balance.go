@@ -1,6 +1,6 @@
 package model
 
 type UserBalance struct {
-	Current   uint64
-	Withdrawn uint64
+	Current   float64
+	Withdrawn float64
 }

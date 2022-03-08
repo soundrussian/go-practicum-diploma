@@ -9,8 +9,8 @@ import (
 )
 
 type balanceJSONResponse struct {
-	Current   uint64 `json:"current"`
-	Withdrawn uint64 `json:"withdrawn"`
+	Current   float64 `json:"current"`
+	Withdrawn float64 `json:"withdrawn"`
 }
 
 func (api *API) HandleBalance(w http.ResponseWriter, r *http.Request) {

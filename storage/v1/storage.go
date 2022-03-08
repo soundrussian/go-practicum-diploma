@@ -200,6 +200,10 @@ func (s *Storage) UserBalance(ctx context.Context, userID uint64) (*model.UserBa
 		return nil, err
 	}
 
+	// Convert kopecks to rubles
+	balance.Current = balance.Current / 100.0
+	balance.Withdrawn = balance.Withdrawn / 100.0
+
 	return &balance, nil
 }
 

@@ -87,7 +87,7 @@ func TestHandleBalance(t *testing.T) {
 	}
 }
 
-func balanceForUserMock(userID uint64, current uint64, withdrawn uint64) *mocks.Balance {
+func balanceForUserMock(userID uint64, current float64, withdrawn float64) *mocks.Balance {
 	m := new(mocks.Balance)
 	m.On("UserBalance", mock.Anything, userID).Return(
 		&model.UserBalance{
