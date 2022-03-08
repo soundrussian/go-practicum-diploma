@@ -92,7 +92,10 @@ func (acc *Accrual) Process(ctx context.Context, orderID string) error {
 		return err
 	}
 
+	acc.Log(ctx).Info().Msgf("got response from accrual service: %+v", res)
+
 	if strings.ToLower(res.Status) == "invalid" {
+		acc.Log(ctx).Info().Msgf("order <%s> has been marked as invalid", orderID)
 		if _, err = acc.storage.UpdateOrder(ctx, orderID, model.OrderInvalid, 0); err != nil {
 			acc.Log(ctx).Err(err).Msgf("failed to mark order <%s> as invalid", orderID)
 			return err
@@ -101,6 +104,7 @@ func (acc *Accrual) Process(ctx context.Context, orderID string) error {
 	}
 
 	if strings.ToLower(res.Status) == "processed" {
+		acc.Log(ctx).Info().Msgf("order <%s> has been processed with accrual %f", orderID, res.Accrual)
 		if _, err = acc.storage.UpdateOrder(ctx, orderID, model.OrderInvalid, res.Accrual); err != nil {
 			acc.Log(ctx).Err(err).Msgf("failed to mark order <%s> as invalid", orderID)
 			return err

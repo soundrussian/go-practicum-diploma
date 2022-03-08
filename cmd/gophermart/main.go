@@ -77,15 +77,14 @@ func main() {
 		for {
 			select {
 			case <-timer.C:
-				logger.Info().Msg("tick!")
 				if err := processor.Tick(ctx); err != nil {
 					logger.Err(err).Msg("error during processor tick")
 				}
 			case <-ctx.Done():
 				logger.Info().Msg("shutting down processor")
+				return
 			}
 		}
-		logger.Info().Msg("done")
 	}()
 
 	serverDone, err := a.RunServer(ctx)
