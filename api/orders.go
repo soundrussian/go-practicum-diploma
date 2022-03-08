@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/curruser"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
@@ -25,6 +26,15 @@ func (api *API) HandleOrders(w http.ResponseWriter, r *http.Request) {
 
 	if len(orders) == 0 {
 		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	encoder := json.NewEncoder(w)
+	if err = encoder.Encode(&orders); err != nil {
+		logger.Err(err).Msgf("failed to encode json response from %+v", orders)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

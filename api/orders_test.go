@@ -9,9 +9,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestAPI_HandleOrders(t *testing.T) {
@@ -48,6 +51,47 @@ func TestAPI_HandleOrders(t *testing.T) {
 				status: http.StatusNoContent,
 			},
 		},
+		{
+			name: "returns 200 and orders list if there are some",
+			args: args{
+				token: token(100),
+				order: ordersMock([]model.Order{
+					{
+						UserID:     100,
+						Accrual:    0,
+						OrderID:    "9278923470",
+						Status:     model.OrderNew,
+						UploadedAt: time.Date(2022, 3, 8, 9, 10, 11, 0, time.UTC),
+					},
+					{
+						UserID:     100,
+						Accrual:    0,
+						OrderID:    "12345678903",
+						Status:     model.OrderProcessing,
+						UploadedAt: time.Date(2022, 3, 8, 9, 5, 11, 0, time.UTC),
+					},
+					{
+						UserID:     100,
+						Accrual:    0,
+						OrderID:    "346436439",
+						Status:     model.OrderInvalid,
+						UploadedAt: time.Date(2022, 3, 7, 9, 5, 11, 0, time.UTC),
+					},
+					{
+						UserID:     100,
+						Accrual:    500,
+						OrderID:    "79927398713",
+						Status:     model.OrderProcessed,
+						UploadedAt: time.Date(2022, 3, 7, 9, 5, 11, 0, time.UTC),
+					},
+				}),
+			},
+			want: want{
+				status:  http.StatusOK,
+				headers: map[string]string{"Content-Type": "application/json"},
+				body:    "testdata/orders.json",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -68,11 +112,17 @@ func TestAPI_HandleOrders(t *testing.T) {
 			require.NoError(t, err)
 
 			if tt.want.body != "" {
+				body := []byte(tt.want.body)
+				if strings.HasPrefix(tt.want.body, "testdata/") {
+					body, err = ioutil.ReadFile(tt.want.body)
+					require.NoError(t, err)
+				}
+
 				resBody, err := io.ReadAll(resp.Body)
 				require.NoError(t, err)
 				defer resp.Body.Close()
 
-				assert.Equal(t, tt.want.body, string(resBody))
+				assert.Equal(t, string(body), string(resBody))
 			}
 
 			assert.Equal(t, tt.want.status, resp.StatusCode)
@@ -88,5 +138,11 @@ func TestAPI_HandleOrders(t *testing.T) {
 func noOrdersMock() *mocks.Order {
 	m := new(mocks.Order)
 	m.On("UserOrders", mock.Anything, mock.Anything).Return([]model.Order{}, nil)
+	return m
+}
+
+func ordersMock(orders []model.Order) *mocks.Order {
+	m := new(mocks.Order)
+	m.On("UserOrders", mock.Anything, mock.Anything).Return(orders, nil)
 	return m
 }
