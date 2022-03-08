@@ -26,7 +26,7 @@ type Storage struct {
 	db *sql.DB
 }
 
-func (s *Storage) AddAccrual(ctx context.Context, orderID string, accrual float64) error {
+func (s *Storage) AddAccrual(ctx context.Context, orderID string, status model.OrderStatus, accrual float64) error {
 	var tx *sql.Tx
 	var err error
 	if tx, err = s.db.BeginTx(ctx, nil); err != nil {
@@ -45,8 +45,8 @@ func (s *Storage) AddAccrual(ctx context.Context, orderID string, accrual float6
 	var userID uint64
 
 	if err = tx.QueryRowContext(ctx,
-		`UPDATE orders SET accrual = $1 WHERE order_id = $2 RETURNING user_id`,
-		accrualSum, orderID).Scan(&userID); err != nil {
+		`UPDATE orders SET accrual = $1, status = $2::integer WHERE order_id = $3 RETURNING user_id`,
+		accrualSum, status, orderID).Scan(&userID); err != nil {
 		s.Log(ctx).Err(err).Msgf("failed to update accrual to %d for order %s", accrualSum, orderID)
 		return err
 	}
@@ -59,6 +59,7 @@ func (s *Storage) AddAccrual(ctx context.Context, orderID string, accrual float6
 		s.Log(ctx).Err(err).Msgf("failed to save transaction for user %d", userID)
 		return err
 	}
+	s.Log(ctx).Debug().Msgf("inserted %d, %s, %d", userID, orderID, accrualSum)
 
 	if err = tx.Commit(); err != nil && err != sql.ErrTxDone {
 		s.Log(ctx).Err(err).Msg("error committing transaction")

@@ -20,7 +20,7 @@ type Accrual struct {
 type Result struct {
 	Order   string  `json:"order"`
 	Status  string  `json:"status"`
-	Accrual float32 `json:"accrual"`
+	Accrual float64 `json:"accrual"`
 }
 
 func New(store storage.Storage) (*Accrual, error) {
@@ -105,7 +105,7 @@ func (acc *Accrual) Process(ctx context.Context, orderID string) error {
 
 	if strings.ToLower(res.Status) == "processed" {
 		acc.Log(ctx).Info().Msgf("order <%s> has been processed with accrual %f", orderID, res.Accrual)
-		if err = acc.storage.UpdateOrderStatus(ctx, orderID, model.OrderProcessed); err != nil {
+		if err = acc.storage.AddAccrual(ctx, orderID, model.OrderProcessed, res.Accrual); err != nil {
 			acc.Log(ctx).Err(err).Msgf("failed to mark order <%s> as processed", orderID)
 			return err
 		}

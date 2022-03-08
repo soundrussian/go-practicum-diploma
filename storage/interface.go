@@ -15,6 +15,6 @@ type Storage interface {
 	UserOrders(ctx context.Context, userID uint64) ([]model.Order, error)
 	OrdersWithStatus(ctx context.Context, status model.OrderStatus, limit int) ([]string, error)
 	UpdateOrderStatus(ctx context.Context, orderID string, status model.OrderStatus) error
-	AddAccrual(ctx context.Context, orderID string, accrual float64) error
+	AddAccrual(ctx context.Context, orderID string, status model.OrderStatus, accrual float64) error
 	Close()
 }
