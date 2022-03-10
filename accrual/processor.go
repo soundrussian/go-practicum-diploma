@@ -39,7 +39,6 @@ func New(store storage.Storage) (*Accrual, error) {
 
 func (acc *Accrual) Run(ctx context.Context) {
 	timer := time.NewTicker(acc.interval)
-	defer timer.Stop()
 
 	go func() {
 		for {
@@ -49,6 +48,7 @@ func (acc *Accrual) Run(ctx context.Context) {
 					acc.Log(ctx).Err(err).Msg("error during processor tick")
 				}
 			case <-ctx.Done():
+				timer.Stop()
 				acc.Log(ctx).Info().Msg("shutting down processor")
 				return
 			}
