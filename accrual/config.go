@@ -20,11 +20,7 @@ func init() {
 	flag.StringVar(accrualAddress, accrualAddressFlag, *accrualAddress, "accrual system address")
 }
 
-// readConfig initializes config if it is not yet set,
-// then reads env variable from accrualAddressEnvKey
-// if the variable is set and config has just been initialized
 func readConfig() {
-	// If accrualAddress has not been set yet, initialize it
 	if accrualAddress == nil {
 		defaultAddress := defaultAccrualAddress
 		accrualAddress = &defaultAddress

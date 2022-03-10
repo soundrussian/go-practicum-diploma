@@ -12,6 +12,7 @@ type authenticateJSONResponse struct {
 	Token string `json:"token"`
 }
 
+// authenticate signs in given user
 func (api *API) authenticate(user *model.User, w http.ResponseWriter, r *http.Request) {
 	var token *string
 	var err error

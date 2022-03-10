@@ -6,7 +6,6 @@ import (
 	"strings"
 )
 
-// NextBatch fetches orders with status New to process in batches set by acc.batch
 func (acc *Accrual) NextBatch(ctx context.Context) ([]string, error) {
 	var orders []string
 	var err error
@@ -19,7 +18,6 @@ func (acc *Accrual) NextBatch(ctx context.Context) ([]string, error) {
 	return orders, nil
 }
 
-// Process fetches data from external service and updates order accordingly
 func (acc *Accrual) Process(ctx context.Context, orderID string) error {
 	var res *Result
 	var err error

@@ -1,6 +1,3 @@
-// Package accrual fetches records to process from storage,
-// makes requests to external service and updates user balance
-// with data received from that external service
 package accrual
 
 import (
@@ -23,16 +20,11 @@ type Accrual struct {
 
 // Result contains order status received from external service
 type Result struct {
-	// Order is ID of processed order
-	Order string `json:"order"`
-	// Status contains status of accrual, see external service docs
-	Status string `json:"status"`
-	// Accrual contains reward points granted for the given order (in rubles)
+	Order   string  `json:"order"`
+	Status  string  `json:"status"`
 	Accrual float64 `json:"accrual"`
 }
 
-// New initializes new Accrual processor. Returns err in passed storage is nil
-// or accrualAddress of the external service is not set.
 func New(store storage.Storage) (*Accrual, error) {
 	if store == nil {
 		return nil, errors.New("nil storage passed to Processor constructor")
@@ -71,9 +63,6 @@ func (acc *Accrual) Run(ctx context.Context) {
 	}()
 }
 
-// Tick fetches next batch or records to process,
-// fires up goroutines to check each of them
-// and waits for completion of each.
 func (acc *Accrual) Tick(ctx context.Context) error {
 	var orders []string
 	var err error

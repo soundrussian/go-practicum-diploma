@@ -8,6 +8,8 @@ import (
 	"net/http"
 )
 
+// CurrentUser is middleware that gets user_id from JWT token (if it is present and signed)
+// and saves it in request context
 func CurrentUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx, logger := logging.CtxLogger(r.Context())
@@ -37,6 +39,8 @@ func CurrentUser(next http.Handler) http.Handler {
 			return
 		}
 
+		// user_id claim is float64, so we should cast it to float64 first,
+		// and then convert it to uint64
 		if userIDAsFloat, ok = v.(float64); !ok {
 			logger.Error().Msgf("could not convert %v to float64", v)
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)

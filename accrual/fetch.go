@@ -7,7 +7,6 @@ import (
 	"net/http"
 )
 
-// Fetch makes request to external service and parses response into Result
 func (acc *Accrual) Fetch(ctx context.Context, orderID string) (*Result, error) {
 	var result Result
 
