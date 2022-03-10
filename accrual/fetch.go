@@ -10,11 +10,20 @@ import (
 func (acc *Accrual) Fetch(ctx context.Context, orderID string) (*Result, error) {
 	var result Result
 
+	if err := acc.limiter.Wait(ctx); err != nil {
+		acc.Log(ctx).Err(err).Msg("error waiting for limiter")
+	}
+
 	acc.Log(ctx).Info().Msgf("getting accrual for order <%s>", orderID)
 	resp, err := http.Get(fmt.Sprintf("%s/api/orders/%s", *accrualAddress, orderID))
 	if err != nil {
 		acc.Log(ctx).Err(err).Msgf("failed to fetch accrual for order <%s>", orderID)
 		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusTooManyRequests {
+		acc.HandleTooManyRequests(ctx, resp)
+		return nil, ErrFailedToFetch
 	}
 
 	if resp.StatusCode != http.StatusOK {

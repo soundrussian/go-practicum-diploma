@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/soundrussian/go-practicum-diploma/storage"
+	"golang.org/x/time/rate"
 	"sync"
 	"time"
 )
@@ -16,6 +17,8 @@ type Accrual struct {
 	batch int
 	// interval - how often to check for new records to process
 	interval time.Duration
+	// limiter limits requests to external service
+	limiter *rate.Limiter
 }
 
 // Result contains order status received from external service
@@ -34,8 +37,11 @@ func New(store storage.Storage) (*Accrual, error) {
 		return nil, errors.New("accrualAddress has not been configured")
 	}
 
+	// Default limiter is 60 rps with bursts of 10
+	limiter := rate.NewLimiter(60, 10)
+
 	// batch and interval are not configurable in the current version
-	return &Accrual{storage: store, batch: 10, interval: time.Second}, nil
+	return &Accrual{storage: store, batch: 10, interval: time.Second, limiter: limiter}, nil
 }
 
 // Run spins up timer ticking every acc.interval.
