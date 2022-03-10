@@ -15,7 +15,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 func main() {
@@ -70,22 +69,7 @@ func main() {
 		logger.Err(err).Msg("failed to start accrual processor")
 	}
 
-	timer := time.NewTicker(time.Second)
-	defer timer.Stop()
-
-	go func() {
-		for {
-			select {
-			case <-timer.C:
-				if err := processor.Tick(ctx); err != nil {
-					logger.Err(err).Msg("error during processor tick")
-				}
-			case <-ctx.Done():
-				logger.Info().Msg("shutting down processor")
-				return
-			}
-		}
-	}()
+	processor.Run(ctx)
 
 	serverDone, err := a.RunServer(ctx)
 

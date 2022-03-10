@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 )
 
 type Accrual struct {
@@ -33,6 +34,25 @@ func New(store storage.Storage) (*Accrual, error) {
 	}
 
 	return &Accrual{storage: store, batch: 10}, nil
+}
+
+func (acc *Accrual) Run(ctx context.Context) {
+	timer := time.NewTicker(time.Second)
+	defer timer.Stop()
+
+	go func() {
+		for {
+			select {
+			case <-timer.C:
+				if err := acc.Tick(ctx); err != nil {
+					acc.Log(ctx).Err(err).Msg("error during processor tick")
+				}
+			case <-ctx.Done():
+				acc.Log(ctx).Info().Msg("shutting down processor")
+				return
+			}
+		}
+	}()
 }
 
 func (acc *Accrual) Tick(ctx context.Context) error {
