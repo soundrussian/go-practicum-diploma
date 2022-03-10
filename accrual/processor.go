@@ -14,8 +14,9 @@ import (
 )
 
 type Accrual struct {
-	storage storage.Storage
-	batch   int
+	storage  storage.Storage
+	batch    int
+	interval time.Duration
 }
 
 type Result struct {
@@ -33,11 +34,11 @@ func New(store storage.Storage) (*Accrual, error) {
 		return nil, errors.New("accrualAddress has not been configured")
 	}
 
-	return &Accrual{storage: store, batch: 10}, nil
+	return &Accrual{storage: store, batch: 10, interval: time.Second}, nil
 }
 
 func (acc *Accrual) Run(ctx context.Context) {
-	timer := time.NewTicker(time.Second)
+	timer := time.NewTicker(acc.interval)
 	defer timer.Stop()
 
 	go func() {
