@@ -32,37 +32,38 @@ func main() {
 	}()
 
 	if err != nil {
-		logger.Err(err).Msg("failed to initialize storage")
+		logger.Fatal().Msgf("failed to initialize storage: %s", err.Error())
 		return
 	}
 
 	authService, err := auth.New(store)
 	if err != nil {
-		logger.Err(err).Msg("error initializing auth service")
+		logger.Fatal().Msgf("error initializing auth service: %s", err.Error())
 		return
 	}
 
 	balanceService, err := balance.New(store)
 	if err != nil {
-		logger.Err(err).Msg("error initializing balance service")
+		logger.Fatal().Msgf("error initializing balance service: %s", err.Error())
 		return
 	}
 
 	orderService, err := order.New(store)
 	if err != nil {
-		logger.Err(err).Msg("error initializing order service")
+		logger.Fatal().Msgf("error initializing order service: %s", err.Error())
 		return
 	}
 
 	a, err := api.New(authService, balanceService, orderService)
 	if err != nil {
-		logger.Err(err).Msg("error intializing API")
+		logger.Fatal().Msgf("error intializing API: %s", err.Error())
 		return
 	}
 
 	processor, err := accrual.New(store)
 	if err != nil {
-		logger.Err(err).Msg("failed to start accrual processor")
+		logger.Fatal().Msgf("failed to start accrual processor: %s", err.Error())
+		return
 	}
 
 	processor.Run(ctx)
@@ -70,7 +71,7 @@ func main() {
 	serverDone, err := a.RunServer(ctx)
 
 	if err != nil && err != http.ErrServerClosed {
-		logger.Err(err).Msg("error starting server")
+		logger.Fatal().Msgf("error starting server: %s", err)
 		return
 	}
 
