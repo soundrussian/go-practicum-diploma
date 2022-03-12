@@ -7,7 +7,7 @@ import (
 )
 
 // Log returns logger with service field set.
-func (acc *Accrual) Log(ctx context.Context) *zerolog.Logger {
+func (acc *Accrual) log(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.CtxLogger(ctx)
 	logger = logger.With().Str(logging.ServiceNameKey, "accrual").Logger()
 

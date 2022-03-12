@@ -7,27 +7,27 @@ import (
 	"net/http"
 )
 
-func (acc *Accrual) Fetch(ctx context.Context, orderID string) (*Result, error) {
-	var result Result
+func (acc *Accrual) fetch(ctx context.Context, orderID string) (*result, error) {
+	var result result
 
 	if err := acc.limiter.Wait(ctx); err != nil {
-		acc.Log(ctx).Err(err).Msg("error waiting for limiter")
+		acc.log(ctx).Err(err).Msg("error waiting for limiter")
 	}
 
-	acc.Log(ctx).Info().Msgf("getting accrual for order <%s>", orderID)
+	acc.log(ctx).Info().Msgf("getting accrual for order <%s>", orderID)
 	resp, err := http.Get(fmt.Sprintf("%s/api/orders/%s", *accrualAddress, orderID))
 	if err != nil {
-		acc.Log(ctx).Err(err).Msgf("failed to fetch accrual for order <%s>", orderID)
+		acc.log(ctx).Err(err).Msgf("failed to fetch accrual for order <%s>", orderID)
 		return nil, err
 	}
 
 	if resp.StatusCode == http.StatusTooManyRequests {
-		acc.HandleTooManyRequests(ctx, resp)
+		acc.handleTooManyRequests(ctx, resp)
 		return nil, ErrFailedToFetch
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		acc.Log(ctx).Error().Msgf("fetching order <%s> responded with status %d", orderID, resp.StatusCode)
+		acc.log(ctx).Error().Msgf("fetching order <%s> responded with status %d", orderID, resp.StatusCode)
 		return nil, ErrFailedToFetch
 	}
 
@@ -35,7 +35,7 @@ func (acc *Accrual) Fetch(ctx context.Context, orderID string) (*Result, error) 
 	defer resp.Body.Close()
 
 	if err := decoder.Decode(&result); err != nil {
-		acc.Log(ctx).Err(err).Msg("failed to decode response from accrual service")
+		acc.log(ctx).Err(err).Msg("failed to decode response from accrual service")
 		return nil, err
 	}
 

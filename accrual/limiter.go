@@ -9,12 +9,12 @@ import (
 	"strconv"
 )
 
-func (acc *Accrual) HandleTooManyRequests(ctx context.Context, resp *http.Response) {
-	acc.Log(ctx).Info().Msg("handling TooManyRequests")
+func (acc *Accrual) handleTooManyRequests(ctx context.Context, resp *http.Response) {
+	acc.log(ctx).Info().Msg("handling TooManyRequests")
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		acc.Log(ctx).Err(err).Msg("failed to read body of TooManyRequests")
+		acc.log(ctx).Err(err).Msg("failed to read body of TooManyRequests")
 		return
 	}
 	defer resp.Body.Close()
@@ -24,7 +24,7 @@ func (acc *Accrual) HandleTooManyRequests(ctx context.Context, resp *http.Respon
 
 	limitPerMinuteF, err := strconv.ParseFloat(string(limitPerMinute), 64)
 	if err != nil {
-		acc.Log(ctx).Err(err).Msg("failed to convert limit to float64")
+		acc.log(ctx).Err(err).Msg("failed to convert limit to float64")
 		return
 	}
 

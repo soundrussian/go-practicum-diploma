@@ -21,8 +21,8 @@ type Accrual struct {
 	limiter *rate.Limiter
 }
 
-// Result contains order status received from external service
-type Result struct {
+// result contains order status received from external service
+type result struct {
 	Order   string  `json:"order"`
 	Status  string  `json:"status"`
 	Accrual float64 `json:"accrual"`
@@ -57,27 +57,27 @@ func (acc *Accrual) Run(ctx context.Context) {
 			case <-timer.C:
 				// Each tick runs with its own context
 				tickCtx := context.Background()
-				if err := acc.Tick(tickCtx); err != nil {
-					acc.Log(tickCtx).Err(err).Msg("error during processor tick")
+				if err := acc.tick(tickCtx); err != nil {
+					acc.log(tickCtx).Err(err).Msg("error during processor tick")
 				}
 			case <-ctx.Done():
 				timer.Stop()
-				acc.Log(ctx).Info().Msg("shutting down processor")
+				acc.log(ctx).Info().Msg("shutting down processor")
 				return
 			}
 		}
 	}()
 }
 
-func (acc *Accrual) Tick(ctx context.Context) error {
-	orders, err := acc.NextBatch(ctx)
+func (acc *Accrual) tick(ctx context.Context) error {
+	orders, err := acc.nextBatch(ctx)
 	if err != nil {
-		acc.Log(ctx).Err(err).Msg("failed to get next batch of records to process")
+		acc.log(ctx).Err(err).Msg("failed to get next batch of records to process")
 		return err
 	}
 
 	if len(orders) == 0 {
-		acc.Log(ctx).Info().Msg("no orders to process")
+		acc.log(ctx).Info().Msg("no orders to process")
 		return nil
 	}
 
@@ -85,9 +85,9 @@ func (acc *Accrual) Tick(ctx context.Context) error {
 	for _, order := range orders {
 		wg.Add(1)
 		go func(order string) {
-			defer func() { wg.Done() }()
-			if err := acc.Process(context.Background(), order); err != nil {
-				acc.Log(ctx).Err(err).Msgf("error processing order <%s>", order)
+			defer wg.Done()
+			if err := acc.process(context.Background(), order); err != nil {
+				acc.log(ctx).Err(err).Msgf("error processing order <%s>", order)
 			}
 		}(order)
 	}
