@@ -2,9 +2,11 @@ package api
 
 import (
 	"fmt"
-	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/model"
-	auth2 "github.com/soundrussian/go-practicum-diploma/service/auth"
+	"github.com/soundrussian/go-practicum-diploma/service/auth"
+	authMock "github.com/soundrussian/go-practicum-diploma/service/auth/mock"
+	balanceMock "github.com/soundrussian/go-practicum-diploma/service/balance/mock"
+	orderMock "github.com/soundrussian/go-practicum-diploma/service/order/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -29,7 +31,7 @@ func TestHandleRegister(t *testing.T) {
 	type args struct {
 		body    string
 		headers map[string]string
-		auth    auth2.Auth
+		auth    auth.Auth
 	}
 	type want struct {
 		status  int
@@ -45,7 +47,7 @@ func TestHandleRegister(t *testing.T) {
 			name: "returns 415 Unsupported Media Type if request does not have Content-Type: application/json",
 			args: args{
 				body: validRequest,
-				auth: &mocks.Auth{},
+				auth: &authMock.Auth{},
 			},
 			want: want{
 				status: http.StatusUnsupportedMediaType,
@@ -58,7 +60,7 @@ func TestHandleRegister(t *testing.T) {
 					"Content-Type": "application/json",
 				},
 				body: invalidJSON,
-				auth: &mocks.Auth{},
+				auth: &authMock.Auth{},
 			},
 			want: want{
 				status: http.StatusBadRequest,
@@ -75,7 +77,7 @@ func TestHandleRegister(t *testing.T) {
 			},
 			want: want{
 				status: http.StatusBadRequest,
-				body:   auth2.ErrInvalidLogin.Error() + "\n",
+				body:   auth.ErrInvalidLogin.Error() + "\n",
 			},
 		},
 		{
@@ -89,7 +91,7 @@ func TestHandleRegister(t *testing.T) {
 			},
 			want: want{
 				status: http.StatusConflict,
-				body:   auth2.ErrUserAlreadyRegistered.Error() + "\n",
+				body:   auth.ErrUserAlreadyRegistered.Error() + "\n",
 			},
 		},
 		{
@@ -113,7 +115,7 @@ func TestHandleRegister(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, err := New(tt.args.auth, new(mocks.Balance), new(mocks.Order))
+			a, err := New(tt.args.auth, new(balanceMock.Balance), new(orderMock.Order))
 			require.NoError(t, err)
 
 			r := a.routes()
@@ -149,20 +151,20 @@ func TestHandleRegister(t *testing.T) {
 	}
 }
 
-func invalidLogin() *mocks.Auth {
-	m := new(mocks.Auth)
-	m.On("Register", mock.Anything, mock.Anything, mock.Anything).Return(nil, auth2.ErrInvalidLogin)
+func invalidLogin() *authMock.Auth {
+	m := new(authMock.Auth)
+	m.On("Register", mock.Anything, mock.Anything, mock.Anything).Return(nil, auth.ErrInvalidLogin)
 	return m
 }
 
-func duplicateUser() *mocks.Auth {
-	m := new(mocks.Auth)
-	m.On("Register", mock.Anything, mock.Anything, mock.Anything).Return(nil, auth2.ErrUserAlreadyRegistered)
+func duplicateUser() *authMock.Auth {
+	m := new(authMock.Auth)
+	m.On("Register", mock.Anything, mock.Anything, mock.Anything).Return(nil, auth.ErrUserAlreadyRegistered)
 	return m
 }
 
-func successfulRegistration(userID uint64) *mocks.Auth {
-	m := new(mocks.Auth)
+func successfulRegistration(userID uint64) *authMock.Auth {
+	m := new(authMock.Auth)
 	m.On("Register", mock.Anything, mock.Anything, mock.Anything).Return(&model.User{ID: userID}, nil)
 	t := token(100)
 	m.On("AuthToken", mock.Anything, mock.Anything, mock.Anything).Return(&t, nil)

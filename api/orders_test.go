@@ -2,9 +2,11 @@ package api
 
 import (
 	"fmt"
-	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/model"
+	authMock "github.com/soundrussian/go-practicum-diploma/service/auth/mock"
+	balanceMock "github.com/soundrussian/go-practicum-diploma/service/balance/mock"
 	"github.com/soundrussian/go-practicum-diploma/service/order"
+	orderMock "github.com/soundrussian/go-practicum-diploma/service/order/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -35,7 +37,7 @@ func TestAPI_HandleOrders(t *testing.T) {
 		{
 			name: "returns 401 if user is not authorized",
 			args: args{
-				order: new(mocks.Order),
+				order: new(orderMock.Order),
 			},
 			want: want{
 				status: http.StatusUnauthorized,
@@ -95,7 +97,7 @@ func TestAPI_HandleOrders(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, err := New(new(mocks.Auth), new(mocks.Balance), tt.args.order)
+			a, err := New(new(authMock.Auth), new(balanceMock.Balance), tt.args.order)
 			require.NoError(t, err)
 
 			r := a.routes()
@@ -135,14 +137,14 @@ func TestAPI_HandleOrders(t *testing.T) {
 	}
 }
 
-func noOrdersMock() *mocks.Order {
-	m := new(mocks.Order)
+func noOrdersMock() *orderMock.Order {
+	m := new(orderMock.Order)
 	m.On("UserOrders", mock.Anything, mock.Anything).Return([]model.Order{}, nil)
 	return m
 }
 
-func ordersMock(orders []model.Order) *mocks.Order {
-	m := new(mocks.Order)
+func ordersMock(orders []model.Order) *orderMock.Order {
+	m := new(orderMock.Order)
 	m.On("UserOrders", mock.Anything, mock.Anything).Return(orders, nil)
 	return m
 }

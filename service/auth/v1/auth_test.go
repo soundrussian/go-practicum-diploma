@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/storage"
+	"github.com/soundrussian/go-practicum-diploma/storage/mock"
 	"reflect"
 	"testing"
 )
@@ -21,7 +21,7 @@ func TestNew(t *testing.T) {
 		{
 			name: "returns error if secretKey is nil",
 			args: args{
-				storage: new(mocks.Storage),
+				storage: new(mock.Storage),
 			},
 			want:    nil,
 			wantErr: true,
@@ -39,9 +39,9 @@ func TestNew(t *testing.T) {
 			name: "returns initialized auth service with passed storage",
 			args: args{
 				secretKey: secretKey,
-				storage:   new(mocks.Storage),
+				storage:   new(mock.Storage),
 			},
-			want:    &Auth{storage: new(mocks.Storage)},
+			want:    &Auth{storage: new(mock.Storage)},
 			wantErr: false,
 		},
 	}

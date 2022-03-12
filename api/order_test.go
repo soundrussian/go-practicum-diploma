@@ -2,8 +2,10 @@ package api
 
 import (
 	"fmt"
-	"github.com/soundrussian/go-practicum-diploma/mocks"
-	order2 "github.com/soundrussian/go-practicum-diploma/service/order"
+	authMock "github.com/soundrussian/go-practicum-diploma/service/auth/mock"
+	balanceMock "github.com/soundrussian/go-practicum-diploma/service/balance/mock"
+	"github.com/soundrussian/go-practicum-diploma/service/order"
+	orderMock "github.com/soundrussian/go-practicum-diploma/service/order/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -19,7 +21,7 @@ func TestAPI_HandleOrder(t *testing.T) {
 		body    string
 		token   string
 		headers map[string]string
-		order   order2.Order
+		order   order.Order
 	}
 	type want struct {
 		status  int
@@ -34,7 +36,7 @@ func TestAPI_HandleOrder(t *testing.T) {
 		{
 			name: "returns 401 if user is not authorized",
 			args: args{
-				order: new(mocks.Order),
+				order: new(orderMock.Order),
 			},
 			want: want{
 				status: http.StatusUnauthorized,
@@ -43,7 +45,7 @@ func TestAPI_HandleOrder(t *testing.T) {
 		{
 			name: "returns 415 if content type is not text/plain",
 			args: args{
-				order:   new(mocks.Order),
+				order:   new(orderMock.Order),
 				token:   token(100),
 				headers: map[string]string{"Content-Type": "application/json"},
 				body:    "79927398713",
@@ -103,7 +105,7 @@ func TestAPI_HandleOrder(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, err := New(new(mocks.Auth), new(mocks.Balance), tt.args.order)
+			a, err := New(new(authMock.Auth), new(balanceMock.Balance), tt.args.order)
 			require.NoError(t, err)
 
 			r := a.routes()
@@ -141,26 +143,26 @@ func TestAPI_HandleOrder(t *testing.T) {
 	}
 }
 
-func orderInvalidMock() *mocks.Order {
-	m := new(mocks.Order)
-	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order2.ErrOrderInvalid)
+func orderInvalidMock() *orderMock.Order {
+	m := new(orderMock.Order)
+	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order.ErrOrderInvalid)
 	return m
 }
 
-func orderUploadedByOtherUser() *mocks.Order {
-	m := new(mocks.Order)
-	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order2.ErrConflict)
+func orderUploadedByOtherUser() *orderMock.Order {
+	m := new(orderMock.Order)
+	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order.ErrConflict)
 	return m
 }
 
-func orderUploadedByCurrentUser() *mocks.Order {
-	m := new(mocks.Order)
-	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order2.ErrAlreadyAccepted)
+func orderUploadedByCurrentUser() *orderMock.Order {
+	m := new(orderMock.Order)
+	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order.ErrAlreadyAccepted)
 	return m
 }
 
-func orderSuccess() *mocks.Order {
-	m := new(mocks.Order)
+func orderSuccess() *orderMock.Order {
+	m := new(orderMock.Order)
 	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	return m
 }

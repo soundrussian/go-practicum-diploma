@@ -3,7 +3,9 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/soundrussian/go-practicum-diploma/mocks"
+	"github.com/soundrussian/go-practicum-diploma/service/auth/mock"
+	balanceMock "github.com/soundrussian/go-practicum-diploma/service/balance/mock"
+	orderMock "github.com/soundrussian/go-practicum-diploma/service/order/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net"
@@ -17,7 +19,7 @@ func TestRunServer(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		api, err := New(new(mocks.Auth), new(mocks.Balance), new(mocks.Order))
+		api, err := New(new(mock.Auth), new(balanceMock.Balance), new(orderMock.Order))
 		require.NoError(t, err)
 
 		runServerOnFreePort(t, ctx, api)
@@ -31,7 +33,7 @@ func TestRunServer_StopThroughContext(t *testing.T) {
 	t.Run("it stops server by cancelling context", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 
-		api, err := New(new(mocks.Auth), new(mocks.Balance), new(mocks.Order))
+		api, err := New(new(mock.Auth), new(balanceMock.Balance), new(orderMock.Order))
 		require.NoError(t, err)
 
 		runServerOnFreePort(t, ctx, api)

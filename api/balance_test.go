@@ -2,9 +2,11 @@ package api
 
 import (
 	"fmt"
-	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/model"
+	authMock "github.com/soundrussian/go-practicum-diploma/service/auth/mock"
 	"github.com/soundrussian/go-practicum-diploma/service/balance"
+	balanceMock "github.com/soundrussian/go-practicum-diploma/service/balance/mock"
+	orderMock "github.com/soundrussian/go-practicum-diploma/service/order/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -33,7 +35,7 @@ func TestHandleBalance(t *testing.T) {
 			name: "it returns 401 if user is not authorized",
 			args: args{
 				token:   "invalid token",
-				balance: new(mocks.Balance),
+				balance: new(balanceMock.Balance),
 			},
 			want: want{
 				status: http.StatusUnauthorized,
@@ -54,7 +56,7 @@ func TestHandleBalance(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, err := New(new(mocks.Auth), tt.args.balance, new(mocks.Order))
+			a, err := New(new(authMock.Auth), tt.args.balance, new(orderMock.Order))
 			require.NoError(t, err)
 
 			r := a.routes()
@@ -87,8 +89,8 @@ func TestHandleBalance(t *testing.T) {
 	}
 }
 
-func balanceForUserMock(userID uint64, current float64, withdrawn float64) *mocks.Balance {
-	m := new(mocks.Balance)
+func balanceForUserMock(userID uint64, current float64, withdrawn float64) *balanceMock.Balance {
+	m := new(balanceMock.Balance)
 	m.On("UserBalance", mock.Anything, userID).Return(
 		&model.UserBalance{
 			Current:   current,

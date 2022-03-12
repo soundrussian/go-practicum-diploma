@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/storage"
+	"github.com/soundrussian/go-practicum-diploma/storage/mock"
 	"reflect"
 	"testing"
 )
@@ -26,9 +26,9 @@ func TestNew(t *testing.T) {
 		{
 			name: "returns Order with passed storage if it is not nil",
 			args: args{
-				storage: new(mocks.Storage),
+				storage: new(mock.Storage),
 			},
-			want:    &Order{storage: new(mocks.Storage)},
+			want:    &Order{storage: new(mock.Storage)},
 			wantErr: false,
 		},
 	}

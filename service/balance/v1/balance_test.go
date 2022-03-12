@@ -3,10 +3,10 @@ package v1
 import (
 	"context"
 	"errors"
-	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/service/balance"
 	"github.com/soundrussian/go-practicum-diploma/storage"
+	storageMock "github.com/soundrussian/go-practicum-diploma/storage/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"reflect"
@@ -32,9 +32,9 @@ func TestNew(t *testing.T) {
 		{
 			name: "returns initialized service with storage set",
 			args: args{
-				storage: new(mocks.Storage),
+				storage: new(storageMock.Storage),
 			},
-			want:    &Balance{storage: new(mocks.Storage)},
+			want:    &Balance{storage: new(storageMock.Storage)},
 			wantErr: false,
 		},
 	}
@@ -106,14 +106,14 @@ func TestBalance_UserBalance(t *testing.T) {
 	}
 }
 
-func failingStorage() *mocks.Storage {
-	m := new(mocks.Storage)
+func failingStorage() *storageMock.Storage {
+	m := new(storageMock.Storage)
 	m.On("UserBalance", mock.Anything, mock.Anything).Return(nil, errors.New("mock error"))
 	return m
 }
 
-func successfulStorage(current float64, withdrawn float64) *mocks.Storage {
-	m := new(mocks.Storage)
+func successfulStorage(current float64, withdrawn float64) *storageMock.Storage {
+	m := new(storageMock.Storage)
 	m.On("UserBalance", mock.Anything, mock.Anything).Return(
 		&model.UserBalance{
 			Current:   current,
@@ -141,7 +141,7 @@ func TestBalance_Withdraw(t *testing.T) {
 		{
 			name: "returns error if sum is less than zero",
 			fields: fields{
-				storage: new(mocks.Storage),
+				storage: new(storageMock.Storage),
 			},
 			args: args{
 				userID:     100,
@@ -152,7 +152,7 @@ func TestBalance_Withdraw(t *testing.T) {
 		{
 			name: "returns error if sum is zero",
 			fields: fields{
-				storage: new(mocks.Storage),
+				storage: new(storageMock.Storage),
 			},
 			args: args{
 				userID:     100,
@@ -163,7 +163,7 @@ func TestBalance_Withdraw(t *testing.T) {
 		{
 			name: "returns error if order number is missing",
 			fields: fields{
-				storage: new(mocks.Storage),
+				storage: new(storageMock.Storage),
 			},
 			args: args{
 				userID:     100,
@@ -174,7 +174,7 @@ func TestBalance_Withdraw(t *testing.T) {
 		{
 			name: "returns error if order number is not a number",
 			fields: fields{
-				storage: new(mocks.Storage),
+				storage: new(storageMock.Storage),
 			},
 			args: args{
 				userID:     100,
@@ -185,7 +185,7 @@ func TestBalance_Withdraw(t *testing.T) {
 		{
 			name: "returns error if order checksum is invalid",
 			fields: fields{
-				storage: new(mocks.Storage),
+				storage: new(storageMock.Storage),
 			},
 			args: args{
 				userID:     100,
@@ -242,20 +242,20 @@ func TestBalance_Withdraw(t *testing.T) {
 	}
 }
 
-func failingWithdrawal() *mocks.Storage {
-	m := new(mocks.Storage)
+func failingWithdrawal() *storageMock.Storage {
+	m := new(storageMock.Storage)
 	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("mock error"))
 	return m
 }
 
-func successfulWithdrawal() *mocks.Storage {
-	m := new(mocks.Storage)
+func successfulWithdrawal() *storageMock.Storage {
+	m := new(storageMock.Storage)
 	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(&model.Withdrawal{}, nil)
 	return m
 }
 
-func notEnoughBalanceWithdrawal() *mocks.Storage {
-	m := new(mocks.Storage)
+func notEnoughBalanceWithdrawal() *storageMock.Storage {
+	m := new(storageMock.Storage)
 	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(nil, storage.ErrNotEnoughBalance)
 	return m
 }
