@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-migrate/migrate"
-	"github.com/golang-migrate/migrate/database"
 	"github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/jackc/pgerrcode"
@@ -26,10 +25,34 @@ type Storage struct {
 	db *sql.DB
 }
 
+func New() (storage.Storage, error) {
+	if databaseConnection == nil {
+		return nil, errors.New("databaseConnection config is not set")
+	}
+
+	db, err := sql.Open("pgx", *databaseConnection)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize database connection: %w", err)
+	}
+
+	if err = runMigrations(db); err != nil {
+		return nil, fmt.Errorf("failed to run migrations: %w", err)
+	}
+
+	store := Storage{db: db}
+
+	return &store, nil
+}
+
+func (s *Storage) Close() {
+	if s.db != nil {
+		s.db.Close()
+	}
+}
+
 func (s *Storage) AddAccrual(ctx context.Context, orderID string, status model.OrderStatus, accrual float64) error {
-	var tx *sql.Tx
-	var err error
-	if tx, err = s.db.BeginTx(ctx, nil); err != nil {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
 		s.Log(ctx).Err(err).Msg("error starting transaction")
 		return err
 	}
@@ -53,7 +76,7 @@ func (s *Storage) AddAccrual(ctx context.Context, orderID string, status model.O
 
 	now := time.Now()
 
-	if _, err = tx.ExecContext(ctx,
+	if _, err := tx.ExecContext(ctx,
 		`INSERT INTO transactions (user_id, order_id, amount, created_at) VALUES ($1, $2, $3, $4)`,
 		userID, orderID, accrualSum, now); err != nil {
 		s.Log(ctx).Err(err).Msgf("failed to save transaction for user %d", userID)
@@ -61,7 +84,7 @@ func (s *Storage) AddAccrual(ctx context.Context, orderID string, status model.O
 	}
 	s.Log(ctx).Debug().Msgf("inserted %d, %s, %d", userID, orderID, accrualSum)
 
-	if err = tx.Commit(); err != nil && err != sql.ErrTxDone {
+	if err := tx.Commit(); err != nil && err != sql.ErrTxDone {
 		s.Log(ctx).Err(err).Msg("error committing transaction")
 		return err
 	}
@@ -83,17 +106,16 @@ func (s *Storage) UpdateOrderStatus(ctx context.Context, orderID string, status 
 }
 
 func (s *Storage) OrdersWithStatus(ctx context.Context, status model.OrderStatus, limit int) ([]string, error) {
-	var rows *sql.Rows
-	var err error
 	result := make([]string, 0)
 
-	if rows, err = s.db.QueryContext(ctx,
+	rows, err := s.db.QueryContext(ctx,
 		`SELECT order_id
 				FROM orders
 				WHERE status = $1::integer
 				LIMIT $2
 				`,
-		int(status), limit); err != nil {
+		int(status), limit)
+	if err != nil {
 		if err == sql.ErrNoRows {
 			s.Log(ctx).Info().Msgf("no orders with status %d", status)
 			return result, nil
@@ -105,44 +127,19 @@ func (s *Storage) OrdersWithStatus(ctx context.Context, status model.OrderStatus
 
 	for rows.Next() {
 		var orderID string
-		if err = rows.Scan(&orderID); err != nil {
+		if err := rows.Scan(&orderID); err != nil {
 			s.Log(ctx).Err(err).Msg("failed to scan row")
 			return nil, err
 		}
 		result = append(result, orderID)
 	}
 
-	if err = rows.Err(); err != nil {
+	if err := rows.Err(); err != nil {
 		s.Log(ctx).Err(err).Msg("error reading rows")
 		return nil, err
 	}
 
 	return result, nil
-}
-
-func (s *Storage) Close() {
-	if s.db != nil {
-		s.db.Close()
-	}
-}
-
-func New() (storage.Storage, error) {
-	if databaseConnection == nil {
-		return nil, errors.New("databaseConnection config is not set")
-	}
-
-	db, err := sql.Open("pgx", *databaseConnection)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize database connection: %w", err)
-	}
-
-	if err = runMigrations(db); err != nil {
-		return nil, fmt.Errorf("failed to run migrations: %w", err)
-	}
-
-	store := Storage{db: db}
-
-	return &store, nil
 }
 
 func (s *Storage) CreateUser(ctx context.Context, login string, password string) (*model.User, error) {
@@ -208,9 +205,8 @@ func (s *Storage) UserBalance(ctx context.Context, userID uint64) (*model.UserBa
 }
 
 func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.Withdrawal) (*model.Withdrawal, error) {
-	var tx *sql.Tx
-	var err error
-	if tx, err = s.db.BeginTx(ctx, nil); err != nil {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
 		s.Log(ctx).Err(err).Msg("error starting transaction")
 		return nil, err
 	}
@@ -226,7 +222,7 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 	// Convert withdrawal to int
 	withdrawSum := int(math.Round(withdrawal.Sum * 100))
 
-	if err = tx.QueryRowContext(ctx,
+	if err := tx.QueryRowContext(ctx,
 		`SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE user_id = $1 LIMIT 1`,
 		userID).Scan(&currentBalance); err != nil {
 		s.Log(ctx).Err(err).Msgf("failed to get current balance for user %d", userID)
@@ -239,7 +235,7 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 	}
 
 	now := time.Now()
-	if _, err = tx.ExecContext(ctx,
+	if _, err := tx.ExecContext(ctx,
 		`INSERT INTO transactions(user_id, order_id, amount, created_at) VALUES ($1, $2, $3, $4)`,
 		userID, withdrawal.Order, withdrawSum*-1, now,
 	); err != nil {
@@ -247,7 +243,7 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 		return nil, err
 	}
 
-	if err = tx.Commit(); err != nil {
+	if err := tx.Commit(); err != nil {
 		s.Log(ctx).Err(err).Msg("error committing transaction")
 		return nil, err
 	}
@@ -260,16 +256,15 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 }
 
 func (s *Storage) UserWithdrawals(ctx context.Context, userID uint64) ([]model.Withdrawal, error) {
-	var rows *sql.Rows
-	var err error
 	result := make([]model.Withdrawal, 0)
-	if rows, err = s.db.QueryContext(ctx,
+	rows, err := s.db.QueryContext(ctx,
 		`SELECT order_id AS "order", amount * -1 AS sum, created_at AS processed_at
 				FROM transactions
 				WHERE user_id = $1
                   AND amount < 0
 				`,
-		userID); err != nil {
+		userID)
+	if err != nil {
 		s.Log(ctx).Err(err).Msgf("failed to fetch withdrawals for user_id %d", userID)
 		return nil, err
 	}
@@ -277,7 +272,7 @@ func (s *Storage) UserWithdrawals(ctx context.Context, userID uint64) ([]model.W
 
 	for rows.Next() {
 		record := model.Withdrawal{}
-		if err = rows.Scan(&record.Order, &record.Sum, &record.ProcessedAt); err != nil {
+		if err := rows.Scan(&record.Order, &record.Sum, &record.ProcessedAt); err != nil {
 			s.Log(ctx).Err(err).Msg("failed to scan row")
 			return nil, err
 		}
@@ -286,7 +281,7 @@ func (s *Storage) UserWithdrawals(ctx context.Context, userID uint64) ([]model.W
 		result = append(result, record)
 	}
 
-	if err = rows.Err(); err != nil {
+	if err := rows.Err(); err != nil {
 		s.Log(ctx).Err(err).Msg("error reading rows")
 		return nil, err
 	}
@@ -295,9 +290,8 @@ func (s *Storage) UserWithdrawals(ctx context.Context, userID uint64) ([]model.W
 }
 
 func (s *Storage) AcceptOrder(ctx context.Context, userID uint64, orderID string) (*model.Order, error) {
-	var tx *sql.Tx
-	var err error
-	if tx, err = s.db.BeginTx(ctx, nil); err != nil {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
 		s.Log(ctx).Err(err).Msg("error starting transaction")
 		return nil, err
 	}
@@ -315,7 +309,7 @@ func (s *Storage) AcceptOrder(ctx context.Context, userID uint64, orderID string
 	var order model.Order
 	now := time.Now()
 
-	if err = tx.QueryRowContext(ctx,
+	if err := tx.QueryRowContext(ctx,
 		`INSERT INTO orders (order_id, user_id, uploaded_at) 
 				 VALUES ($1, $2, $3)
 				 RETURNING order_id, user_id, status, uploaded_at`,
@@ -325,7 +319,7 @@ func (s *Storage) AcceptOrder(ctx context.Context, userID uint64, orderID string
 		return nil, err
 	}
 
-	if err = tx.Commit(); err != nil {
+	if err := tx.Commit(); err != nil {
 		s.Log(ctx).Err(err).Msg("error while committing transaction")
 		return nil, err
 	}
@@ -334,16 +328,15 @@ func (s *Storage) AcceptOrder(ctx context.Context, userID uint64, orderID string
 }
 
 func (s *Storage) UserOrders(ctx context.Context, userID uint64) ([]model.Order, error) {
-	var rows *sql.Rows
-	var err error
 	result := make([]model.Order, 0)
-	if rows, err = s.db.QueryContext(ctx,
+	rows, err := s.db.QueryContext(ctx,
 		`SELECT order_id, user_id, accrual, status, uploaded_at
 				FROM orders
 				WHERE user_id = $1
                 ORDER BY uploaded_at DESC
 				`,
-		userID); err != nil {
+		userID)
+	if err != nil {
 		s.Log(ctx).Err(err).Msgf("failed to fetch orders for user_id %d", userID)
 		return nil, err
 	}
@@ -351,7 +344,7 @@ func (s *Storage) UserOrders(ctx context.Context, userID uint64) ([]model.Order,
 
 	for rows.Next() {
 		record := model.Order{}
-		if err = rows.Scan(&record.OrderID, &record.UserID, &record.Accrual, &record.Status, &record.UploadedAt); err != nil {
+		if err := rows.Scan(&record.OrderID, &record.UserID, &record.Accrual, &record.Status, &record.UploadedAt); err != nil {
 			s.Log(ctx).Err(err).Msg("failed to scan row")
 			return nil, err
 		}
@@ -361,7 +354,7 @@ func (s *Storage) UserOrders(ctx context.Context, userID uint64) ([]model.Order,
 		result = append(result, record)
 	}
 
-	if err = rows.Err(); err != nil {
+	if err := rows.Err(); err != nil {
 		s.Log(ctx).Err(err).Msg("error reading rows")
 		return nil, err
 	}
@@ -398,21 +391,19 @@ func (s *Storage) sameOrAnotherUser(ctx context.Context, tx *sql.Tx, orderID str
 }
 
 func runMigrations(db *sql.DB) error {
-	var m *migrate.Migrate
-	var driver database.Driver
-	var err error
-
-	if driver, err = postgres.WithInstance(db, &postgres.Config{}); err != nil {
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
 		return err
 	}
 
-	if m, err = migrate.NewWithDatabaseInstance("file://db/migrations", "postgres", driver); err != nil {
+	m, err := migrate.NewWithDatabaseInstance("file://db/migrations", "postgres", driver)
+	if err != nil {
 		return err
 	}
 
 	// golang-migrate returns ErrNoChange if there are no new migrations.
 	// Ignore it.
-	if err = m.Up(); !errors.Is(err, migrate.ErrNoChange) {
+	if err := m.Up(); !errors.Is(err, migrate.ErrNoChange) {
 		return err
 	}
 

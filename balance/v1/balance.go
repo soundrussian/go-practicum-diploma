@@ -30,10 +30,8 @@ func New(storage storage.Storage) (*Balance, error) {
 }
 
 func (b *Balance) UserBalance(ctx context.Context, userID uint64) (*model.UserBalance, error) {
-	var res *model.UserBalance
-	var err error
-
-	if res, err = b.storage.UserBalance(ctx, userID); err != nil {
+	res, err := b.storage.UserBalance(ctx, userID)
+	if err != nil {
 		b.Log(ctx).Err(err).Msg("failed to get UserBalance")
 		return nil, err
 	}
@@ -46,10 +44,8 @@ func (b *Balance) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 		return balance.ErrInvalidSum
 	}
 
-	var orderID int
-	var err error
-
-	if orderID, err = strconv.Atoi(withdrawal.Order); err != nil {
+	orderID, err := strconv.Atoi(withdrawal.Order)
+	if err != nil {
 		b.Log(ctx).Err(err).Msgf("failed to convert %s to integer", withdrawal.Order)
 		return fmt.Errorf("%w: orderID is not a number", balance.ErrInvalidOrder)
 	}
@@ -59,7 +55,7 @@ func (b *Balance) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 		return fmt.Errorf("%w: orderID checksum is wrong", balance.ErrInvalidOrder)
 	}
 
-	if _, err = b.storage.Withdraw(ctx, userID, withdrawal); err != nil {
+	if _, err := b.storage.Withdraw(ctx, userID, withdrawal); err != nil {
 		b.Log(ctx).Err(err).Msgf("failed to make withdrawal %+v for user %d", withdrawal, userID)
 		if errors.Is(err, storage.ErrNotEnoughBalance) {
 			return balance.ErrNotEnoughBalance
@@ -71,10 +67,8 @@ func (b *Balance) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 }
 
 func (b *Balance) Withdrawals(ctx context.Context, userID uint64) ([]model.Withdrawal, error) {
-	var withdrawals []model.Withdrawal
-	var err error
-
-	if withdrawals, err = b.storage.UserWithdrawals(ctx, userID); err != nil {
+	withdrawals, err := b.storage.UserWithdrawals(ctx, userID)
+	if err != nil {
 		return []model.Withdrawal{}, err
 	}
 

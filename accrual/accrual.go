@@ -70,10 +70,8 @@ func (acc *Accrual) Run(ctx context.Context) {
 }
 
 func (acc *Accrual) Tick(ctx context.Context) error {
-	var orders []string
-	var err error
-
-	if orders, err = acc.NextBatch(ctx); err != nil {
+	orders, err := acc.NextBatch(ctx)
+	if err != nil {
 		acc.Log(ctx).Err(err).Msg("failed to get next batch of records to process")
 		return err
 	}

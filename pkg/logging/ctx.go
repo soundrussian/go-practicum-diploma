@@ -28,10 +28,9 @@ func CtxLogger(ctx context.Context) (context.Context, zerolog.Logger) {
 		}
 	}
 
-	var correlationID string
-	var err error
 	// If there is no correlation ID in the context, set it
-	if correlationID, err = CorrelationID(ctx); err != nil {
+	correlationID, err := CorrelationID(ctx)
+	if err != nil {
 		correlationUUID, _ := uuid.NewUUID()
 		correlationID = correlationUUID.String()
 		ctx = SetCorrelationID(ctx, correlationID)

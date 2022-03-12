@@ -34,7 +34,7 @@ func (acc *Accrual) Fetch(ctx context.Context, orderID string) (*Result, error) 
 	decoder := json.NewDecoder(resp.Body)
 	defer resp.Body.Close()
 
-	if err = decoder.Decode(&result); err != nil {
+	if err := decoder.Decode(&result); err != nil {
 		acc.Log(ctx).Err(err).Msg("failed to decode response from accrual service")
 		return nil, err
 	}

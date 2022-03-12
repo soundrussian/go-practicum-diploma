@@ -18,17 +18,15 @@ func (api *API) HandleBalance(w http.ResponseWriter, r *http.Request) {
 	logger = logger.With().Str(logging.HandlerNameKey, "balance").Logger()
 	logger.Info().Msg("handling balance")
 
-	var userID uint64
-
-	if userID, _ = curruser.CurrentUser(r.Context()); userID == 0 {
+	userID, _ := curruser.CurrentUser(r.Context())
+	if userID == 0 {
 		logger.Error().Msg("failed to get current user from context")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	var userBalance *model.UserBalance
-	var err error
-	if userBalance, err = api.balanceService.UserBalance(ctx, userID); err != nil {
+	userBalance, err := api.balanceService.UserBalance(ctx, userID)
+	if err != nil {
 		logger.Err(err).Msg("failed to get balance for user")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -39,7 +37,7 @@ func (api *API) HandleBalance(w http.ResponseWriter, r *http.Request) {
 	resp := respFromModel(userBalance)
 
 	encoder := json.NewEncoder(w)
-	if err = encoder.Encode(&resp); err != nil {
+	if err := encoder.Encode(&resp); err != nil {
 		logger.Err(err).Msgf("failed to encode json response from %+v", resp)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

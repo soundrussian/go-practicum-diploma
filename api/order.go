@@ -14,10 +14,8 @@ func (api *API) HandleOrder(w http.ResponseWriter, r *http.Request) {
 	logger = logger.With().Str(logging.HandlerNameKey, "order").Logger()
 	logger.Info().Msg("handling order")
 
-	var orderID []byte
-	var err error
-
-	if orderID, err = io.ReadAll(r.Body); err != nil {
+	orderID, err := io.ReadAll(r.Body)
+	if err != nil {
 		logger.Err(err).Msg("failed to read request body")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -25,7 +23,7 @@ func (api *API) HandleOrder(w http.ResponseWriter, r *http.Request) {
 
 	userID, _ := curruser.CurrentUser(ctx)
 
-	if err = api.orderService.AcceptOrder(ctx, userID, string(orderID)); err != nil {
+	if err := api.orderService.AcceptOrder(ctx, userID, string(orderID)); err != nil {
 		logger.Err(err).Msgf("error accepting order <%s> for user %d", string(orderID), userID)
 		status := http.StatusInternalServerError
 		if errors.Is(err, order.ErrOrderInvalid) {

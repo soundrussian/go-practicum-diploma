@@ -13,7 +13,9 @@ require (
 	github.com/lestrrat-go/jwx v1.2.6
 	github.com/rs/zerolog v1.26.1
 	github.com/stretchr/testify v1.7.0
+	github.com/theplant/luhn v0.0.0-20170224032821-81a1a381387a
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
+	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65
 )
 
 require (
@@ -45,9 +47,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
-	github.com/theplant/luhn v0.0.0-20170224032821-81a1a381387a // indirect
 	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65 // indirect
 	google.golang.org/grpc v1.44.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect

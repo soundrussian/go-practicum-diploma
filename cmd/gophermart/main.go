@@ -9,7 +9,6 @@ import (
 	balance "github.com/soundrussian/go-practicum-diploma/balance/v1"
 	order "github.com/soundrussian/go-practicum-diploma/order/v1"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
-	storage "github.com/soundrussian/go-practicum-diploma/storage"
 	db "github.com/soundrussian/go-practicum-diploma/storage/v1"
 	"net/http"
 	"os"
@@ -18,13 +17,6 @@ import (
 )
 
 func main() {
-	var a *api.API
-	var authService *auth.Auth
-	var balanceService *balance.Balance
-	var orderService *order.Order
-	var store storage.Storage
-	var err error
-
 	flag.Parse()
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -32,7 +24,7 @@ func main() {
 
 	ctx, logger := logging.CtxLogger(ctx)
 
-	store, err = db.New()
+	store, err := db.New()
 	defer func() {
 		if store != nil {
 			store.Close()
@@ -44,28 +36,32 @@ func main() {
 		return
 	}
 
-	if authService, err = auth.New(store); err != nil {
+	authService, err := auth.New(store)
+	if err != nil {
 		logger.Err(err).Msg("error initializing auth service")
 		return
 	}
 
-	if balanceService, err = balance.New(store); err != nil {
+	balanceService, err := balance.New(store)
+	if err != nil {
 		logger.Err(err).Msg("error initializing balance service")
 		return
 	}
 
-	if orderService, err = order.New(store); err != nil {
+	orderService, err := order.New(store)
+	if err != nil {
 		logger.Err(err).Msg("error initializing order service")
 		return
 	}
 
-	if a, err = api.New(authService, balanceService, orderService); err != nil {
+	a, err := api.New(authService, balanceService, orderService)
+	if err != nil {
 		logger.Err(err).Msg("error intializing API")
 		return
 	}
 
-	var processor *accrual.Accrual
-	if processor, err = accrual.New(store); err != nil {
+	processor, err := accrual.New(store)
+	if err != nil {
 		logger.Err(err).Msg("failed to start accrual processor")
 	}
 

@@ -31,10 +31,8 @@ type Order struct {
 }
 
 func (o Order) Validate() error {
-	var n int
-	var err error
-
-	if n, err = strconv.Atoi(o.OrderID); err != nil {
+	n, err := strconv.Atoi(o.OrderID)
+	if err != nil {
 		return ErrNotNum
 	}
 
