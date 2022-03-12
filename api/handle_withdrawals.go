@@ -6,9 +6,22 @@ import (
 	"github.com/soundrussian/go-practicum-diploma/pkg/curruser"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"net/http"
+	"time"
 )
 
-type withdrawalsJSONResponse []model.Withdrawal
+type withdrawalsResponse struct {
+	Order       string  `json:"order"`
+	Sum         float64 `json:"sum"`
+	ProcessedAt string  `json:"processed_at"`
+}
+
+func withdrawalsResponseFromModel(model model.Withdrawal) withdrawalsResponse {
+	return withdrawalsResponse{
+		Order:       model.Order,
+		Sum:         model.Sum,
+		ProcessedAt: model.ProcessedAt.Format(time.RFC3339),
+	}
+}
 
 func (api *API) HandleWithdrawals(w http.ResponseWriter, r *http.Request) {
 	ctx, logger := logging.CtxLogger(r.Context())
@@ -34,8 +47,13 @@ func (api *API) HandleWithdrawals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := make([]withdrawalsResponse, 0, len(withdrawals))
+	for _, withdrawal := range withdrawals {
+		response = append(response, withdrawalsResponseFromModel(withdrawal))
+	}
+
 	encoder := json.NewEncoder(w)
-	if err := encoder.Encode(&withdrawals); err != nil {
+	if err := encoder.Encode(&response); err != nil {
 		logger.Err(err).Msgf("failed to encode %+v", withdrawals)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
