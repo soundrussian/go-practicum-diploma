@@ -15,7 +15,6 @@ import (
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"github.com/soundrussian/go-practicum-diploma/storage"
-	"math"
 	"time"
 )
 
@@ -64,7 +63,7 @@ func (s *Storage) AddAccrual(ctx context.Context, orderID string, status model.O
 	}()
 
 	// Convert accrual to int
-	accrualSum := int(math.Round(accrual * 100))
+	accrualSum := int(accrual * 100)
 	var userID uint64
 
 	if err = tx.QueryRowContext(ctx,
@@ -220,7 +219,7 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 	// Check current balance
 	var currentBalance int
 	// Convert withdrawal to int
-	withdrawSum := int(math.Round(withdrawal.Sum * 100))
+	withdrawSum := int(withdrawal.Sum * 100)
 
 	if err := tx.QueryRowContext(ctx,
 		`SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE user_id = $1 LIMIT 1`,
