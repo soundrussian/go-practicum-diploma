@@ -3,9 +3,9 @@ package v1
 import (
 	"context"
 	"errors"
-	"github.com/soundrussian/go-practicum-diploma/balance"
 	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/model"
+	"github.com/soundrussian/go-practicum-diploma/service/balance"
 	"github.com/soundrussian/go-practicum-diploma/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

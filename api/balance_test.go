@@ -2,9 +2,9 @@ package api
 
 import (
 	"fmt"
-	"github.com/soundrussian/go-practicum-diploma/balance"
 	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/model"
+	"github.com/soundrussian/go-practicum-diploma/service/balance"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

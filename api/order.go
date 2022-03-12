@@ -2,9 +2,9 @@ package api
 
 import (
 	"errors"
-	"github.com/soundrussian/go-practicum-diploma/order"
 	"github.com/soundrussian/go-practicum-diploma/pkg/curruser"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
+	"github.com/soundrussian/go-practicum-diploma/service/order"
 	"io"
 	"net/http"
 )

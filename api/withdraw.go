@@ -3,10 +3,10 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"github.com/soundrussian/go-practicum-diploma/balance"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/curruser"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
+	"github.com/soundrussian/go-practicum-diploma/service/balance"
 	"net/http"
 )
 

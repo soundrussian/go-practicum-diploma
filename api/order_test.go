@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/soundrussian/go-practicum-diploma/mocks"
-	"github.com/soundrussian/go-practicum-diploma/order"
+	order2 "github.com/soundrussian/go-practicum-diploma/service/order"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -19,7 +19,7 @@ func TestAPI_HandleOrder(t *testing.T) {
 		body    string
 		token   string
 		headers map[string]string
-		order   order.Order
+		order   order2.Order
 	}
 	type want struct {
 		status  int
@@ -143,19 +143,19 @@ func TestAPI_HandleOrder(t *testing.T) {
 
 func orderInvalidMock() *mocks.Order {
 	m := new(mocks.Order)
-	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order.ErrOrderInvalid)
+	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order2.ErrOrderInvalid)
 	return m
 }
 
 func orderUploadedByOtherUser() *mocks.Order {
 	m := new(mocks.Order)
-	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order.ErrConflict)
+	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order2.ErrConflict)
 	return m
 }
 
 func orderUploadedByCurrentUser() *mocks.Order {
 	m := new(mocks.Order)
-	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order.ErrAlreadyAccepted)
+	m.On("AcceptOrder", mock.Anything, mock.Anything, mock.Anything).Return(order2.ErrAlreadyAccepted)
 	return m
 }
 

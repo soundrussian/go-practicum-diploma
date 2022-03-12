@@ -3,8 +3,8 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"github.com/soundrussian/go-practicum-diploma/auth"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
+	"github.com/soundrussian/go-practicum-diploma/service/auth"
 	"net/http"
 )
 

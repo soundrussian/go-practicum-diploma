@@ -2,8 +2,8 @@ package api
 
 import (
 	"context"
-	v1 "github.com/soundrussian/go-practicum-diploma/auth/v1"
 	"github.com/soundrussian/go-practicum-diploma/model"
+	"github.com/soundrussian/go-practicum-diploma/service/auth/v1"
 )
 
 func token(userID uint64) string {

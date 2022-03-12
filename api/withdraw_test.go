@@ -2,8 +2,8 @@ package api
 
 import (
 	"fmt"
-	"github.com/soundrussian/go-practicum-diploma/balance"
 	"github.com/soundrussian/go-practicum-diploma/mocks"
+	balance2 "github.com/soundrussian/go-practicum-diploma/service/balance"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -18,7 +18,7 @@ func TestAPI_HandleWithdraw(t *testing.T) {
 	type args struct {
 		body    string
 		token   string
-		balance balance.Balance
+		balance balance2.Balance
 		headers map[string]string
 	}
 	type want struct {
@@ -155,19 +155,19 @@ func TestAPI_HandleWithdraw(t *testing.T) {
 
 func notEnoughBalanceMock() *mocks.Balance {
 	m := new(mocks.Balance)
-	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(balance.ErrNotEnoughBalance)
+	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(balance2.ErrNotEnoughBalance)
 	return m
 }
 
 func invalidSumMock() *mocks.Balance {
 	m := new(mocks.Balance)
-	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(balance.ErrInvalidSum)
+	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(balance2.ErrInvalidSum)
 	return m
 }
 
 func invalidOrderMock() *mocks.Balance {
 	m := new(mocks.Balance)
-	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(balance.ErrInvalidOrder)
+	m.On("Withdraw", mock.Anything, mock.Anything, mock.Anything).Return(balance2.ErrInvalidOrder)
 	return m
 }
 

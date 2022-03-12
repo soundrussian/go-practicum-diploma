@@ -5,14 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/rs/zerolog"
-	"github.com/soundrussian/go-practicum-diploma/auth"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
+	auth2 "github.com/soundrussian/go-practicum-diploma/service/auth"
 	"github.com/soundrussian/go-practicum-diploma/storage"
 	"golang.org/x/crypto/bcrypt"
 )
 
-var _ auth.Auth = (*Auth)(nil)
+var _ auth2.Auth = (*Auth)(nil)
 
 type Auth struct {
 	storage storage.Storage
@@ -39,7 +39,7 @@ func New(storage storage.Storage) (*Auth, error) {
 func (a *Auth) Register(ctx context.Context, login string, password string) (*model.User, error) {
 	hashedPassword, err := a.hashedPassword(ctx, password)
 	if err != nil {
-		return nil, auth.ErrRegistrationInternalError
+		return nil, auth2.ErrRegistrationInternalError
 	}
 
 	user, err := a.storage.CreateUser(ctx, login, hashedPassword)
@@ -56,14 +56,14 @@ func (a *Auth) Authenticate(ctx context.Context, login string, password string) 
 	if err != nil {
 		a.Log(ctx).Err(err).Msg("errors fetching user for authentication")
 		if errors.Is(err, storage.ErrNotFound) {
-			return nil, auth.ErrUserNotFound
+			return nil, auth2.ErrUserNotFound
 		}
-		return nil, auth.ErrAuthenticateInternalError
+		return nil, auth2.ErrAuthenticateInternalError
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password+*secretKey)); err != nil {
 		a.Log(ctx).Err(err).Msgf("provided password %s is not valid for user %s", password, login)
-		return nil, auth.ErrPasswordIncorrect
+		return nil, auth2.ErrPasswordIncorrect
 	}
 
 	return user, nil

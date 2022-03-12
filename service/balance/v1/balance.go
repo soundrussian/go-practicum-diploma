@@ -5,15 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/rs/zerolog"
-	"github.com/soundrussian/go-practicum-diploma/balance"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
+	balance2 "github.com/soundrussian/go-practicum-diploma/service/balance"
 	"github.com/soundrussian/go-practicum-diploma/storage"
 	"github.com/theplant/luhn"
 	"strconv"
 )
 
-var _ balance.Balance = (*Balance)(nil)
+var _ balance2.Balance = (*Balance)(nil)
 
 type Balance struct {
 	storage storage.Storage
@@ -41,26 +41,26 @@ func (b *Balance) UserBalance(ctx context.Context, userID uint64) (*model.UserBa
 
 func (b *Balance) Withdraw(ctx context.Context, userID uint64, withdrawal model.Withdrawal) error {
 	if withdrawal.Sum <= 0 {
-		return balance.ErrInvalidSum
+		return balance2.ErrInvalidSum
 	}
 
 	orderID, err := strconv.Atoi(withdrawal.Order)
 	if err != nil {
 		b.Log(ctx).Err(err).Msgf("failed to convert %s to integer", withdrawal.Order)
-		return fmt.Errorf("%w: orderID is not a number", balance.ErrInvalidOrder)
+		return fmt.Errorf("%w: orderID is not a number", balance2.ErrInvalidOrder)
 	}
 
 	if !luhn.Valid(orderID) {
 		b.Log(ctx).Err(err).Msgf("invalid checksum for %d", orderID)
-		return fmt.Errorf("%w: orderID checksum is wrong", balance.ErrInvalidOrder)
+		return fmt.Errorf("%w: orderID checksum is wrong", balance2.ErrInvalidOrder)
 	}
 
 	if _, err := b.storage.Withdraw(ctx, userID, withdrawal); err != nil {
 		b.Log(ctx).Err(err).Msgf("failed to make withdrawal %+v for user %d", withdrawal, userID)
 		if errors.Is(err, storage.ErrNotEnoughBalance) {
-			return balance.ErrNotEnoughBalance
+			return balance2.ErrNotEnoughBalance
 		}
-		return balance.ErrInternalError
+		return balance2.ErrInternalError
 	}
 
 	return nil

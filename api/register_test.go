@@ -2,9 +2,9 @@ package api
 
 import (
 	"fmt"
-	"github.com/soundrussian/go-practicum-diploma/auth"
 	"github.com/soundrussian/go-practicum-diploma/mocks"
 	"github.com/soundrussian/go-practicum-diploma/model"
+	auth2 "github.com/soundrussian/go-practicum-diploma/service/auth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -29,7 +29,7 @@ func TestHandleRegister(t *testing.T) {
 	type args struct {
 		body    string
 		headers map[string]string
-		auth    auth.Auth
+		auth    auth2.Auth
 	}
 	type want struct {
 		status  int
@@ -75,7 +75,7 @@ func TestHandleRegister(t *testing.T) {
 			},
 			want: want{
 				status: http.StatusBadRequest,
-				body:   auth.ErrInvalidLogin.Error() + "\n",
+				body:   auth2.ErrInvalidLogin.Error() + "\n",
 			},
 		},
 		{
@@ -89,7 +89,7 @@ func TestHandleRegister(t *testing.T) {
 			},
 			want: want{
 				status: http.StatusConflict,
-				body:   auth.ErrUserAlreadyRegistered.Error() + "\n",
+				body:   auth2.ErrUserAlreadyRegistered.Error() + "\n",
 			},
 		},
 		{
@@ -151,13 +151,13 @@ func TestHandleRegister(t *testing.T) {
 
 func invalidLogin() *mocks.Auth {
 	m := new(mocks.Auth)
-	m.On("Register", mock.Anything, mock.Anything, mock.Anything).Return(nil, auth.ErrInvalidLogin)
+	m.On("Register", mock.Anything, mock.Anything, mock.Anything).Return(nil, auth2.ErrInvalidLogin)
 	return m
 }
 
 func duplicateUser() *mocks.Auth {
 	m := new(mocks.Auth)
-	m.On("Register", mock.Anything, mock.Anything, mock.Anything).Return(nil, auth.ErrUserAlreadyRegistered)
+	m.On("Register", mock.Anything, mock.Anything, mock.Anything).Return(nil, auth2.ErrUserAlreadyRegistered)
 	return m
 }
 

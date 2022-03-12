@@ -5,7 +5,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
 	customMiddleware "github.com/soundrussian/go-practicum-diploma/api/middleware"
-	auth "github.com/soundrussian/go-practicum-diploma/auth/v1"
+	auth "github.com/soundrussian/go-practicum-diploma/service/auth/v1"
 )
 
 func (api *API) routes() *chi.Mux {

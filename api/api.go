@@ -2,9 +2,9 @@ package api
 
 import (
 	"errors"
-	"github.com/soundrussian/go-practicum-diploma/auth"
-	"github.com/soundrussian/go-practicum-diploma/balance"
-	"github.com/soundrussian/go-practicum-diploma/order"
+	"github.com/soundrussian/go-practicum-diploma/service/auth"
+	"github.com/soundrussian/go-practicum-diploma/service/balance"
+	"github.com/soundrussian/go-practicum-diploma/service/order"
 )
 
 type API struct {
