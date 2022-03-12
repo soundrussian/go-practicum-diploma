@@ -21,7 +21,12 @@ func (api *API) HandleOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	userID, _ := curruser.CurrentUser(ctx)
+	userID, err := curruser.CurrentUser(ctx)
+	if err != nil {
+		logger.Err(err).Msg("failed to get current user from context")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	if err := api.orderService.AcceptOrder(ctx, userID, string(orderID)); err != nil {
 		logger.Err(err).Msgf("error accepting order <%s> for user %d", string(orderID), userID)

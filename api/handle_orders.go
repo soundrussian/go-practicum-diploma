@@ -12,7 +12,12 @@ func (api *API) HandleOrders(w http.ResponseWriter, r *http.Request) {
 	logger = logger.With().Str(logging.HandlerNameKey, "orders").Logger()
 	logger.Info().Msg("handling orders")
 
-	userID, _ := curruser.CurrentUser(ctx)
+	userID, err := curruser.CurrentUser(ctx)
+	if err != nil {
+		logger.Err(err).Msg("failed to get current user from context")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	orders, err := api.orderService.UserOrders(ctx, userID)
 	if err != nil {

@@ -31,7 +31,13 @@ func (api *API) HandleWithdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, _ := curruser.CurrentUser(ctx)
+	userID, err := curruser.CurrentUser(ctx)
+	if err != nil {
+		logger.Err(err).Msg("failed to get current user from context")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	if err := api.balanceService.Withdraw(ctx, userID, requestToWithdrawal(jsonRequest)); err != nil {
 		logger.Err(err).Msgf("failed to withdraw %f point from user %d for order %s", jsonRequest.Sum, userID, jsonRequest.Order)
 		if errors.Is(err, balance.ErrNotEnoughBalance) {

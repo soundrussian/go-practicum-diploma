@@ -15,7 +15,12 @@ func (api *API) HandleWithdrawals(w http.ResponseWriter, r *http.Request) {
 	logger = logger.With().Str(logging.HandlerNameKey, "withdrawals").Logger()
 	logger.Info().Msg("handling withdrawals")
 
-	userID, _ := curruser.CurrentUser(ctx)
+	userID, err := curruser.CurrentUser(ctx)
+	if err != nil {
+		logger.Err(err).Msg("failed to get current user from context")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	withdrawals, err := api.balanceService.Withdrawals(ctx, userID)
 	if err != nil {

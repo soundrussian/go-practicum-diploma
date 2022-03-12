@@ -18,10 +18,10 @@ func (api *API) HandleBalance(w http.ResponseWriter, r *http.Request) {
 	logger = logger.With().Str(logging.HandlerNameKey, "balance").Logger()
 	logger.Info().Msg("handling balance")
 
-	userID, _ := curruser.CurrentUser(r.Context())
-	if userID == 0 {
-		logger.Error().Msg("failed to get current user from context")
-		w.WriteHeader(http.StatusInternalServerError)
+	userID, err := curruser.CurrentUser(r.Context())
+	if err != nil {
+		logger.Err(err).Msg("failed to get current user from context")
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
