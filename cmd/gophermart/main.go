@@ -9,7 +9,7 @@ import (
 	auth "github.com/soundrussian/go-practicum-diploma/service/auth/v1"
 	balance "github.com/soundrussian/go-practicum-diploma/service/balance/v1"
 	order "github.com/soundrussian/go-practicum-diploma/service/order/v1"
-	db "github.com/soundrussian/go-practicum-diploma/storage/v1"
+	db "github.com/soundrussian/go-practicum-diploma/storage/psql"
 	"net/http"
 	"os"
 	"os/signal"

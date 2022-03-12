@@ -1,4 +1,4 @@
-package v1
+package psql
 
 import (
 	"context"
@@ -396,7 +396,7 @@ func runMigrations(db *sql.DB) error {
 		return err
 	}
 
-	m, err := migrate.NewWithDatabaseInstance("file://db/migrations", "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance("file://storage/psql/db/migrations", "postgres", driver)
 	if err != nil {
 		return err
 	}
