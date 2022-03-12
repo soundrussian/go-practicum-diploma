@@ -2,10 +2,28 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/curruser"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"net/http"
+	"time"
 )
+
+type orderResponse struct {
+	Number     string  `json:"number"`
+	Status     string  `json:"status"`
+	Accrual    float64 `json:"accrual,omitempty"`
+	UploadedAt string  `json:"uploaded_at"`
+}
+
+func orderResponseFromModel(model model.Order) orderResponse {
+	return orderResponse{
+		Accrual:    model.Accrual,
+		Number:     model.OrderID,
+		Status:     model.Status.String(),
+		UploadedAt: model.UploadedAt.Format(time.RFC3339),
+	}
+}
 
 func (api *API) HandleOrders(w http.ResponseWriter, r *http.Request) {
 	ctx, logger := logging.CtxLogger(r.Context())
@@ -31,10 +49,15 @@ func (api *API) HandleOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := make([]orderResponse, 0, len(orders))
+	for _, order := range orders {
+		response = append(response, orderResponseFromModel(order))
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
 	encoder := json.NewEncoder(w)
-	if err := encoder.Encode(&orders); err != nil {
+	if err := encoder.Encode(&response); err != nil {
 		logger.Err(err).Msgf("failed to encode json response from %+v", orders)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
