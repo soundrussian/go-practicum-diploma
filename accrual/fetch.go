@@ -4,26 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/go-retryablehttp"
 	"net/http"
 )
 
 func (acc *Accrual) fetch(ctx context.Context, orderID string) (*result, error) {
 	var result result
 
-	if err := acc.limiter.Wait(ctx); err != nil {
-		acc.log(ctx).Err(err).Msg("error waiting for limiter")
-	}
-
 	acc.log(ctx).Info().Msgf("getting accrual for order <%s>", orderID)
-	resp, err := http.Get(fmt.Sprintf("%s/api/orders/%s", *accrualAddress, orderID))
+
+	resp, err := retryablehttp.Get(fmt.Sprintf("%s/api/orders/%s", *accrualAddress, orderID))
 	if err != nil {
 		acc.log(ctx).Err(err).Msgf("failed to fetch accrual for order <%s>", orderID)
 		return nil, err
-	}
-
-	if resp.StatusCode == http.StatusTooManyRequests {
-		acc.handleTooManyRequests(ctx, resp)
-		return nil, ErrFailedToFetch
 	}
 
 	if resp.StatusCode != http.StatusOK {

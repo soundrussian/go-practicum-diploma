@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/jwtauth/v5 v5.0.2
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/google/uuid v1.3.0
+	github.com/hashicorp/go-retryablehttp v0.7.0
 	github.com/jackc/pgerrcode v0.0.0-20201024163028-a0d42d470451
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v4 v4.15.0
@@ -15,7 +16,6 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/theplant/luhn v0.0.0-20170224032821-81a1a381387a
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
-	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65
 )
 
 require (
@@ -27,6 +27,7 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/goccy/go-json v0.7.6 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/jackc/pgconn v1.11.0 // indirect
