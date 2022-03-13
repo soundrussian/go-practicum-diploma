@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/shopspring/decimal"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	authMock "github.com/soundrussian/go-practicum-diploma/service/auth/mock"
 	balanceMock "github.com/soundrussian/go-practicum-diploma/service/balance/mock"
@@ -60,28 +61,28 @@ func TestAPI_HandleOrders(t *testing.T) {
 				order: ordersMock([]model.Order{
 					{
 						UserID:     100,
-						Accrual:    0,
+						Accrual:    decimal.Zero,
 						OrderID:    "9278923470",
 						Status:     model.OrderNew,
 						UploadedAt: time.Date(2022, 3, 8, 9, 10, 11, 0, time.UTC),
 					},
 					{
 						UserID:     100,
-						Accrual:    0,
+						Accrual:    decimal.Zero,
 						OrderID:    "12345678903",
 						Status:     model.OrderProcessing,
 						UploadedAt: time.Date(2022, 3, 8, 9, 5, 11, 0, time.UTC),
 					},
 					{
 						UserID:     100,
-						Accrual:    0,
+						Accrual:    decimal.Zero,
 						OrderID:    "346436439",
 						Status:     model.OrderInvalid,
 						UploadedAt: time.Date(2022, 3, 7, 9, 5, 11, 0, time.UTC),
 					},
 					{
 						UserID:     100,
-						Accrual:    500,
+						Accrual:    decimal.NewFromInt(500),
 						OrderID:    "79927398713",
 						Status:     model.OrderProcessed,
 						UploadedAt: time.Date(2022, 3, 7, 9, 5, 11, 0, time.UTC),

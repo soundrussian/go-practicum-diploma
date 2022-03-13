@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"errors"
+	"github.com/shopspring/decimal"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/service/balance"
 	"github.com/soundrussian/go-practicum-diploma/storage"
@@ -80,12 +81,12 @@ func TestBalance_UserBalance(t *testing.T) {
 		{
 			name: "returns balance from storage and no error if storage does not return error",
 			fields: fields{
-				storage: successfulStorage(100, 50),
+				storage: successfulStorage(decimal.NewFromInt(100), decimal.NewFromInt(50)),
 			},
 			args: args{
 				userID: 100,
 			},
-			want:    &model.UserBalance{Current: 100, Withdrawn: 50},
+			want:    &model.UserBalance{Current: decimal.NewFromInt(100), Withdrawn: decimal.NewFromInt(50)},
 			wantErr: false,
 		},
 	}
@@ -112,7 +113,7 @@ func failingStorage() *storageMock.Storage {
 	return m
 }
 
-func successfulStorage(current float64, withdrawn float64) *storageMock.Storage {
+func successfulStorage(current decimal.Decimal, withdrawn decimal.Decimal) *storageMock.Storage {
 	m := new(storageMock.Storage)
 	m.On("UserBalance", mock.Anything, mock.Anything).Return(
 		&model.UserBalance{
@@ -145,7 +146,7 @@ func TestBalance_Withdraw(t *testing.T) {
 			},
 			args: args{
 				userID:     100,
-				withdrawal: model.Withdrawal{Sum: -1},
+				withdrawal: model.Withdrawal{Sum: decimal.NewFromInt(-1)},
 			},
 			wantErr: balance.ErrInvalidSum,
 		},
@@ -156,7 +157,7 @@ func TestBalance_Withdraw(t *testing.T) {
 			},
 			args: args{
 				userID:     100,
-				withdrawal: model.Withdrawal{Sum: 0},
+				withdrawal: model.Withdrawal{Sum: decimal.Zero},
 			},
 			wantErr: balance.ErrInvalidSum,
 		},
@@ -167,7 +168,7 @@ func TestBalance_Withdraw(t *testing.T) {
 			},
 			args: args{
 				userID:     100,
-				withdrawal: model.Withdrawal{Sum: 10},
+				withdrawal: model.Withdrawal{Sum: decimal.NewFromInt(10)},
 			},
 			wantErr: balance.ErrInvalidOrder,
 		},
@@ -178,7 +179,7 @@ func TestBalance_Withdraw(t *testing.T) {
 			},
 			args: args{
 				userID:     100,
-				withdrawal: model.Withdrawal{Order: "not a number", Sum: 10},
+				withdrawal: model.Withdrawal{Order: "not a number", Sum: decimal.NewFromInt(10)},
 			},
 			wantErr: balance.ErrInvalidOrder,
 		},
@@ -189,7 +190,7 @@ func TestBalance_Withdraw(t *testing.T) {
 			},
 			args: args{
 				userID:     100,
-				withdrawal: model.Withdrawal{Order: "7992739871", Sum: 10},
+				withdrawal: model.Withdrawal{Order: "7992739871", Sum: decimal.NewFromInt(10)},
 			},
 			wantErr: balance.ErrInvalidOrder,
 		},
@@ -200,7 +201,7 @@ func TestBalance_Withdraw(t *testing.T) {
 			},
 			args: args{
 				userID:     100,
-				withdrawal: model.Withdrawal{Order: "79927398713", Sum: 10},
+				withdrawal: model.Withdrawal{Order: "79927398713", Sum: decimal.NewFromInt(10)},
 			},
 			wantErr: balance.ErrInternalError,
 		},
@@ -211,7 +212,7 @@ func TestBalance_Withdraw(t *testing.T) {
 			},
 			args: args{
 				userID:     100,
-				withdrawal: model.Withdrawal{Order: "79927398713", Sum: 10},
+				withdrawal: model.Withdrawal{Order: "79927398713", Sum: decimal.NewFromInt(10)},
 			},
 			wantErr: balance.ErrNotEnoughBalance,
 		},
@@ -222,7 +223,7 @@ func TestBalance_Withdraw(t *testing.T) {
 			},
 			args: args{
 				userID:     100,
-				withdrawal: model.Withdrawal{Order: "79927398713", Sum: 10},
+				withdrawal: model.Withdrawal{Order: "79927398713", Sum: decimal.NewFromInt(10)},
 			},
 		},
 	}

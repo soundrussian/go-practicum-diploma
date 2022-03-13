@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	authMock "github.com/soundrussian/go-practicum-diploma/service/auth/mock"
 	"github.com/soundrussian/go-practicum-diploma/service/balance"
@@ -73,12 +74,12 @@ func TestAPI_HandleWithdrawals(t *testing.T) {
 				balance: successfulWithdrawalList([]model.Withdrawal{
 					{
 						Order:       "1",
-						Sum:         100.05,
+						Sum:         decimal.NewFromFloat(100.05),
 						ProcessedAt: time.Date(2022, 03, 06, 05, 04, 01, 0, time.UTC),
 					},
 					{
 						Order:       "1",
-						Sum:         25,
+						Sum:         decimal.NewFromInt(25),
 						ProcessedAt: time.Date(2022, 03, 06, 06, 04, 01, 0, time.UTC),
 					},
 				}),

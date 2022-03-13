@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/shopspring/decimal"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	authMock "github.com/soundrussian/go-practicum-diploma/service/auth/mock"
 	"github.com/soundrussian/go-practicum-diploma/service/balance"
@@ -45,7 +46,7 @@ func TestHandleBalance(t *testing.T) {
 			name: "it returns user's current and withdrawn balance",
 			args: args{
 				token:   token(100),
-				balance: balanceForUserMock(100, 500, 42),
+				balance: balanceForUserMock(100, decimal.NewFromInt(500), decimal.NewFromInt(42)),
 			},
 			want: want{
 				status:  http.StatusOK,
@@ -89,7 +90,7 @@ func TestHandleBalance(t *testing.T) {
 	}
 }
 
-func balanceForUserMock(userID uint64, current float64, withdrawn float64) *balanceMock.Balance {
+func balanceForUserMock(userID uint64, current decimal.Decimal, withdrawn decimal.Decimal) *balanceMock.Balance {
 	m := new(balanceMock.Balance)
 	m.On("UserBalance", mock.Anything, userID).Return(
 		&model.UserBalance{

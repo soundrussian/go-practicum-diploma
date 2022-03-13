@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/shopspring/decimal"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/curruser"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
@@ -11,15 +10,17 @@ import (
 )
 
 type withdrawalsResponse struct {
-	Order       string          `json:"order"`
-	Sum         decimal.Decimal `json:"sum"`
-	ProcessedAt string          `json:"processed_at"`
+	Order       string  `json:"order"`
+	Sum         float64 `json:"sum"`
+	ProcessedAt string  `json:"processed_at"`
 }
 
 func withdrawalsResponseFromModel(model model.Withdrawal) withdrawalsResponse {
+	sum, _ := model.Sum.RoundBank(2).Float64()
+
 	return withdrawalsResponse{
 		Order:       model.Order,
-		Sum:         model.Sum.RoundBank(2),
+		Sum:         sum,
 		ProcessedAt: model.ProcessedAt.Format(time.RFC3339),
 	}
 }

@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/shopspring/decimal"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/curruser"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
@@ -11,15 +10,16 @@ import (
 )
 
 type orderResponse struct {
-	Number     string          `json:"number"`
-	Status     string          `json:"status"`
-	Accrual    decimal.Decimal `json:"accrual,omitempty"`
-	UploadedAt string          `json:"uploaded_at"`
+	Number     string  `json:"number"`
+	Status     string  `json:"status"`
+	Accrual    float64 `json:"accrual,omitempty"`
+	UploadedAt string  `json:"uploaded_at"`
 }
 
 func orderResponseFromModel(model model.Order) orderResponse {
+	accrual, _ := model.Accrual.RoundBank(2).Float64()
 	return orderResponse{
-		Accrual:    model.Accrual.RoundBank(2),
+		Accrual:    accrual,
 		Number:     model.OrderID,
 		Status:     model.Status.String(),
 		UploadedAt: model.UploadedAt.Format(time.RFC3339),

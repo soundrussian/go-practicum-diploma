@@ -53,7 +53,7 @@ func (acc *Accrual) process(ctx context.Context, orderID string) error {
 		finalResult = true
 		return nil
 	case status.Processed:
-		acc.log(ctx).Info().Msgf("order <%s> has been processed with accrual %f", orderID, res.Accrual)
+		acc.log(ctx).Info().Msgf("order <%s> has been processed with accrual %s", orderID, res.Accrual)
 		if err := acc.storage.AddAccrual(ctx, orderID, model.OrderProcessed, res.Accrual); err != nil {
 			acc.log(ctx).Err(err).Msgf("failed to mark order <%s> as processed", orderID)
 			return err
