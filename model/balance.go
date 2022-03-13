@@ -1,6 +1,8 @@
 package model
 
+import "github.com/shopspring/decimal"
+
 type UserBalance struct {
-	Current   float64
-	Withdrawn float64
+	Current   decimal.Decimal
+	Withdrawn decimal.Decimal
 }

@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"github.com/shopspring/decimal"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/curruser"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
@@ -11,8 +12,8 @@ import (
 )
 
 type withdrawJSONRequest struct {
-	Order string  `json:"order"`
-	Sum   float64 `json:"sum"`
+	Order string          `json:"order"`
+	Sum   decimal.Decimal `json:"sum"`
 }
 
 func (api *API) HandleWithdraw(w http.ResponseWriter, r *http.Request) {

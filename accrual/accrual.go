@@ -3,6 +3,7 @@ package accrual
 import (
 	"context"
 	"errors"
+	"github.com/shopspring/decimal"
 	"github.com/soundrussian/go-practicum-diploma/storage"
 	"sync"
 	"time"
@@ -20,9 +21,9 @@ type Accrual struct {
 
 // result contains order status received from external service
 type result struct {
-	Order   string  `json:"order"`
-	Status  string  `json:"status"`
-	Accrual float64 `json:"accrual"`
+	Order   string          `json:"order"`
+	Status  string          `json:"status"`
+	Accrual decimal.Decimal `json:"accrual"`
 }
 
 func New(store storage.Storage) (*Accrual, error) {

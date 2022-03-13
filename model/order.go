@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"github.com/shopspring/decimal"
 	"github.com/theplant/luhn"
 	"strconv"
 	"time"
@@ -33,7 +34,7 @@ func (status OrderStatus) String() string {
 
 type Order struct {
 	UserID     uint64
-	Accrual    float64
+	Accrual    decimal.Decimal
 	OrderID    string
 	Status     OrderStatus
 	UploadedAt time.Time

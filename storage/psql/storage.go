@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/rs/zerolog"
+	"github.com/shopspring/decimal"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
 	"github.com/soundrussian/go-practicum-diploma/storage"
@@ -49,7 +50,7 @@ func (s *Storage) Close() {
 	}
 }
 
-func (s *Storage) AddAccrual(ctx context.Context, orderID string, status model.OrderStatus, accrual float64) error {
+func (s *Storage) AddAccrual(ctx context.Context, orderID string, status model.OrderStatus, accrual decimal.Decimal) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.Log(ctx).Err(err).Msg("error starting transaction")
@@ -62,15 +63,13 @@ func (s *Storage) AddAccrual(ctx context.Context, orderID string, status model.O
 		}
 	}()
 
-	// Convert accrual to int
-	accrualSum := int(accrual * 100)
 	var userID uint64
 
 	// Only orders with status processing can be awarded accrual
 	if err = tx.QueryRowContext(ctx,
 		`UPDATE orders SET accrual = $1, status = $2::integer WHERE order_id = $3 AND status = $4 RETURNING user_id`,
-		accrualSum, status, orderID, model.OrderProcessing).Scan(&userID); err != nil {
-		s.Log(ctx).Err(err).Msgf("failed to update accrual to %d for order %s", accrualSum, orderID)
+		accrual, status, orderID, model.OrderProcessing).Scan(&userID); err != nil {
+		s.Log(ctx).Err(err).Msgf("failed to update accrual to %d for order %s", accrual, orderID)
 		return err
 	}
 
@@ -78,11 +77,11 @@ func (s *Storage) AddAccrual(ctx context.Context, orderID string, status model.O
 
 	if _, err := tx.ExecContext(ctx,
 		`INSERT INTO transactions (user_id, order_id, amount, created_at) VALUES ($1, $2, $3, $4)`,
-		userID, orderID, accrualSum, now); err != nil {
+		userID, orderID, accrual, now); err != nil {
 		s.Log(ctx).Err(err).Msgf("failed to save transaction for user %d", userID)
 		return err
 	}
-	s.Log(ctx).Debug().Msgf("inserted %d, %s, %d", userID, orderID, accrualSum)
+	s.Log(ctx).Debug().Msgf("inserted %d, %s, %d", userID, orderID, accrual)
 
 	if err := tx.Commit(); err != nil && err != sql.ErrTxDone {
 		s.Log(ctx).Err(err).Msg("error committing transaction")
@@ -197,10 +196,6 @@ func (s *Storage) UserBalance(ctx context.Context, userID uint64) (*model.UserBa
 		return nil, err
 	}
 
-	// Convert kopecks to rubles
-	balance.Current = balance.Current / 100.0
-	balance.Withdrawn = balance.Withdrawn / 100.0
-
 	return &balance, nil
 }
 
@@ -218,9 +213,7 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 	}()
 
 	// Check current balance
-	var currentBalance int
-	// Convert withdrawal to int
-	withdrawSum := int(withdrawal.Sum * 100)
+	var currentBalance decimal.Decimal
 
 	if err := tx.QueryRowContext(ctx,
 		`SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE user_id = $1 LIMIT 1`,
@@ -229,15 +222,15 @@ func (s *Storage) Withdraw(ctx context.Context, userID uint64, withdrawal model.
 		return nil, err
 	}
 
-	if currentBalance < withdrawSum {
-		s.Log(ctx).Info().Msgf("user's %d current balance of %d is less than withdrawal amount of %d", userID, currentBalance, withdrawSum)
+	if currentBalance.LessThan(withdrawal.Sum) {
+		s.Log(ctx).Info().Msgf("user's %d current balance of %d is less than withdrawal amount of %d", userID, currentBalance, withdrawal.Sum)
 		return nil, storage.ErrNotEnoughBalance
 	}
 
 	now := time.Now()
 	if _, err := tx.ExecContext(ctx,
 		`INSERT INTO transactions(user_id, order_id, amount, created_at) VALUES ($1, $2, $3, $4)`,
-		userID, withdrawal.Order, withdrawSum*-1, now,
+		userID, withdrawal.Order, withdrawal.Sum.Mul(decimal.NewFromInt(-1)), now,
 	); err != nil {
 		s.Log(ctx).Err(err).Msg("error saving withdrawal to DB")
 		return nil, err
@@ -276,8 +269,6 @@ func (s *Storage) UserWithdrawals(ctx context.Context, userID uint64) ([]model.W
 			s.Log(ctx).Err(err).Msg("failed to scan row")
 			return nil, err
 		}
-		// Convert sum to float
-		record.Sum = record.Sum / 100
 		result = append(result, record)
 	}
 
@@ -348,8 +339,6 @@ func (s *Storage) UserOrders(ctx context.Context, userID uint64) ([]model.Order,
 			s.Log(ctx).Err(err).Msg("failed to scan row")
 			return nil, err
 		}
-		// Convert kopecks to rubles
-		record.Accrual = record.Accrual / 100.0
 
 		result = append(result, record)
 	}

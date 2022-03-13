@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/shopspring/decimal"
 	"github.com/soundrussian/go-practicum-diploma/model"
 	"github.com/soundrussian/go-practicum-diploma/pkg/curruser"
 	"github.com/soundrussian/go-practicum-diploma/pkg/logging"
@@ -9,8 +10,8 @@ import (
 )
 
 type balanceJSONResponse struct {
-	Current   float64 `json:"current"`
-	Withdrawn float64 `json:"withdrawn"`
+	Current   decimal.Decimal `json:"current"`
+	Withdrawn decimal.Decimal `json:"withdrawn"`
 }
 
 func (api *API) HandleBalance(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +47,7 @@ func (api *API) HandleBalance(w http.ResponseWriter, r *http.Request) {
 
 func respFromModel(balance *model.UserBalance) balanceJSONResponse {
 	return balanceJSONResponse{
-		Current:   balance.Current,
-		Withdrawn: balance.Withdrawn,
+		Current:   balance.Current.RoundBank(2),
+		Withdrawn: balance.Withdrawn.RoundBank(2),
 	}
 }
