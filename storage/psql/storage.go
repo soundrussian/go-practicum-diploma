@@ -66,9 +66,10 @@ func (s *Storage) AddAccrual(ctx context.Context, orderID string, status model.O
 	accrualSum := int(accrual * 100)
 	var userID uint64
 
+	// Only orders with status processing can be awarded accrual
 	if err = tx.QueryRowContext(ctx,
-		`UPDATE orders SET accrual = $1, status = $2::integer WHERE order_id = $3 RETURNING user_id`,
-		accrualSum, status, orderID).Scan(&userID); err != nil {
+		`UPDATE orders SET accrual = $1, status = $2::integer WHERE order_id = $3 AND status = $4 RETURNING user_id`,
+		accrualSum, status, orderID, model.OrderProcessing).Scan(&userID); err != nil {
 		s.Log(ctx).Err(err).Msgf("failed to update accrual to %d for order %s", accrualSum, orderID)
 		return err
 	}

@@ -2,8 +2,8 @@ package accrual
 
 import (
 	"context"
+	"github.com/soundrussian/go-practicum-diploma/accrual/status"
 	"github.com/soundrussian/go-practicum-diploma/model"
-	"strings"
 )
 
 func (acc *Accrual) nextBatch(ctx context.Context) ([]string, error) {
@@ -43,7 +43,8 @@ func (acc *Accrual) process(ctx context.Context, orderID string) error {
 
 	acc.log(ctx).Info().Msgf("got response from accrual service: %+v", res)
 
-	if strings.ToLower(res.Status) == "invalid" {
+	switch status.New(res.Status) {
+	case status.Invalid:
 		acc.log(ctx).Info().Msgf("order <%s> has been marked as invalid", orderID)
 		if err := acc.storage.UpdateOrderStatus(ctx, orderID, model.OrderInvalid); err != nil {
 			acc.log(ctx).Err(err).Msgf("failed to mark order <%s> as invalid", orderID)
@@ -51,9 +52,7 @@ func (acc *Accrual) process(ctx context.Context, orderID string) error {
 		}
 		finalResult = true
 		return nil
-	}
-
-	if strings.ToLower(res.Status) == "processed" {
+	case status.Processed:
 		acc.log(ctx).Info().Msgf("order <%s> has been processed with accrual %f", orderID, res.Accrual)
 		if err := acc.storage.AddAccrual(ctx, orderID, model.OrderProcessed, res.Accrual); err != nil {
 			acc.log(ctx).Err(err).Msgf("failed to mark order <%s> as processed", orderID)

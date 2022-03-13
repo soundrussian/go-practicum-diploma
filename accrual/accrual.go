@@ -86,7 +86,7 @@ func (acc *Accrual) tick(ctx context.Context) error {
 		wg.Add(1)
 		go func(order string) {
 			defer wg.Done()
-			if err := acc.process(context.Background(), order); err != nil {
+			if err := acc.process(ctx, order); err != nil {
 				acc.log(ctx).Err(err).Msgf("error processing order <%s>", order)
 			}
 		}(order)
